@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Book a Slot</h2>
+    <form method="POST">
+        <label>Date:</label>
+        <input type="date" name="date" required>
+
+        <label>Time:</label>
+        <input type="text" name="time" placeholder="e.g. 10:00-12:00" required>
+
+        <label>Branch:</label>
+        <select name="branch" required>
+            {% for b in branches %}
+            <option value="{{ b }}">{{ b }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Section:</label>
+        <select name="section" required>
+            {% for s in sections %}
+            <option value="{{ s }}">{{ s }}</option>
+            {% endfor %}
+        </select>
+
+        <input type="submit" value="Book Slot">
+    </form>
+</div>
+
+<hr style="margin: 3rem 0;">
+
+<div class="form-container">
+    <h2>All Booking Slots</h2>
+    <ul style="list-style-type: none; padding: 0;">
+        {% for slot in slots %}
+        <li class="slot-item {% if slot.booked_by %}booked{% else %}available{% endif %}">
+            {{ slot.date }} | {{ slot.time }} | {{ slot.branch }} | {{ slot.section }}
+            {% if slot.booked_by %}
+            🔒 Booked
+            {% else %}
+            ✅ Available
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

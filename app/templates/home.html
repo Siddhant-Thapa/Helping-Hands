@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% set body_class = "home-body" %}
+{% block content %}
+<div class="home-wrapper">
+    <div class="home-overlay">
+        <img src="{{ url_for('static', filename='helping_logo.png') }}" class="home-logo" alt="Helping Hands Logo">
+        <h1>Welcome to Helping Hands</h1>
+        <p class="subtitle">Support your store during busy sales seasons. Join, assist, and make a difference.</p>
+        <div class="home-buttons">
+            <a href="{{ url_for('auth_bp.login') }}" class="btn">Login</a>
+            <a href="{{ url_for('auth_bp.register') }}" class="btn-outline">Register</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

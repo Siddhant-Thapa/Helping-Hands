@@ -1,0 +1,10 @@
+# Ignore virtual env
+.venv/
+
+# Ignore system files
+__pycache__/
+*.pyc
+*.db
+
+# Ignore uploads (optional)
+app/static/uploads/
