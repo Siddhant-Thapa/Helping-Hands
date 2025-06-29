@@ -25,4 +25,7 @@ def create_app():
     from app.routes.slot import slot_bp
     app.register_blueprint(slot_bp)
 
+    from app.routes.feedback import feedback_bp
+    app.register_blueprint(feedback_bp)
+
     return app

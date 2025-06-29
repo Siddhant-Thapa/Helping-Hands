@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>📅 Weekly Slot Availability</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul class="flashes">
+        {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    <div class="calendar-grid">
+        {% for day in days %}
+        {% set day_str = day.strftime("%Y-%m-%d") %}
+        <div class="calendar-day">
+            <h4>{{ day.strftime("%A, %b %d") }}</h4>
+
+            {% if slot_map[day_str] %}
+            <ul>
+                {% for slot in slot_map[day_str] %}
+                <li
+                    class="{% if slot.booked_by and slot.booked_by|string == user_id|string %}mine{% elif slot.booked_by %}booked{% else %}available{% endif %}">
+                    {{ slot.time }} – {{ slot.section }} ({{ slot.branch }})
+
+                    {% if not slot.booked_by %}
+                    <form method="POST" action="{{ url_for('slot_bp.book_from_calendar') }}" style="display:inline;">
+                        <input type="hidden" name="date" value="{{ slot.date }}">
+                        <input type="hidden" name="time" value="{{ slot.time }}">
+                        <input type="hidden" name="branch" value="{{ slot.branch }}">
+                        <input type="hidden" name="section" value="{{ slot.section }}">
+                        <button type="submit" class="book-btn">Book</button>
+                    </form>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No slots</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
