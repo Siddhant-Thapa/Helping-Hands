@@ -18,20 +18,21 @@
         {% set day_str = day.strftime("%Y-%m-%d") %}
         <div class="calendar-day">
             <h4>{{ day.strftime("%A, %b %d") }}</h4>
-
             {% if slot_map[day_str] %}
             <ul>
                 {% for slot in slot_map[day_str] %}
-                <li
-                    class="{% if slot.booked_by and slot.booked_by|string == user_id|string %}mine{% elif slot.booked_by %}booked{% else %}available{% endif %}">
-                    {{ slot.time }} – {{ slot.section }} ({{ slot.branch }})
-
-                    {% if not slot.booked_by %}
+                <li class="{% if slot.bookings and slot.bookings[0].user_id == user_id %}mine{% 
+                         elif slot.bookings %}booked{% else %}available{% endif %}">
+                    {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }}
+                    – {{ slot.branch.name }} ({{ slot.section.name }})
+                    {% if not slot.bookings %}
                     <form method="POST" action="{{ url_for('slot_bp.book_from_calendar') }}" style="display:inline;">
-                        <input type="hidden" name="date" value="{{ slot.date }}">
-                        <input type="hidden" name="time" value="{{ slot.time }}">
-                        <input type="hidden" name="branch" value="{{ slot.branch }}">
-                        <input type="hidden" name="section" value="{{ slot.section }}">
+                        <input type="hidden" name="date" value="{{ slot.date.strftime('%Y-%m-%d') }}">
+                        <input type="hidden" name="slot_range" value="{% for k, v in SLOT_TIME_RANGES.items() %}
+                          {% if v[0] == slot.start_time and v[1] == slot.end_time %}{{ k }}{% endif %}
+                          {% endfor %}">
+                        <input type="hidden" name="branch" value="{{ slot.branch.name }}">
+                        <input type="hidden" name="section" value="{{ slot.section.name }}">
                         <button type="submit" class="book-btn">Book</button>
                     </form>
                     {% endif %}

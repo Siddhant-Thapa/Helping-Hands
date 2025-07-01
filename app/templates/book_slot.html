@@ -6,8 +6,13 @@
         <label>Date:</label>
         <input type="date" name="date" required>
 
-        <label>Time:</label>
-        <input type="text" name="time" placeholder="e.g. 10:00-12:00" required>
+        <label>Time Slot:</label>
+        <select name="slot_range" required>
+            <option value="9-5">9 AM - 5 PM</option>
+            <option value="10-6">10 AM - 6 PM</option>
+            <option value="11-7">11 AM - 7 PM</option>
+            <option value="12-8">12 PM - 8 PM</option>
+        </select>
 
         <label>Branch:</label>
         <select name="branch" required>
@@ -34,7 +39,7 @@
     <ul style="list-style-type: none; padding: 0;">
         {% for slot in slots %}
         <li class="slot-item {% if slot.booked_by %}booked{% else %}available{% endif %}">
-            {{ slot.date }} | {{ slot.time }} | {{ slot.branch }} | {{ slot.section }}
+            {{ slot.date }} | {{ slot.time }} | {{ slot.branch.name }} | {{ slot.section.name }}
             {% if slot.booked_by %}
             🔒 Booked
             {% else %}

@@ -1,13 +1,16 @@
-from bson import ObjectId
-from datetime import datetime
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
-from app import mongo
-from bson.objectid import ObjectId
+from app.models import db, Slot, Booking, Feedback, Branch, Section, User
 
 slot_bp = Blueprint("slot_bp", __name__)
 
-# Constants for branches and sections
+SLOT_TIME_RANGES = {
+    "9-5": (time(9, 0), time(17, 0)),
+    "10-6": (time(10, 0), time(18, 0)),
+    "11-7": (time(11, 0), time(19, 0)),
+    "12-8": (time(12, 0), time(20, 0)),
+}
+
 BANGALORE_BRANCHES = [
     "Indiranagar", "Whitefield", "Malleshwaram", "Koramangala", "HSR Layout"
 ]
@@ -21,48 +24,63 @@ STORE_SECTIONS = [
 def book_slot():
     if 'user_id' not in session:
         return redirect(url_for("auth_bp.login"))
-
-    user_id = ObjectId(session['user_id'])
+    user_id = int(session['user_id'])
 
     if request.method == "POST":
         date = request.form["date"]
-        time = request.form["time"]
+        slot_range = request.form["slot_range"]  # e.g., "9-5"
         branch = request.form["branch"]
         section = request.form["section"]
 
-        # Check if this slot already exists and is booked
-        existing = mongo.db.slots.find_one({
-            "date": date,
-            "time": time,
-            "branch": branch,
-            "section": section
-        })
-        print("Existing slot:", existing)
+        start_time, end_time = SLOT_TIME_RANGES.get(slot_range, (None, None))
+        if not start_time or not end_time:
+            flash("Invalid slot selected.", "danger")
+            return redirect(url_for("slot_bp.book_slot"))
 
-        if existing:
-            if existing.get("booked_by") is not None:
+        branch_obj = Branch.query.filter_by(name=branch).first()
+        section_obj = Section.query.filter_by(name=section).first()
+
+        if not branch_obj or not section_obj:
+            flash("Invalid branch or section.", "danger")
+            return redirect(url_for("slot_bp.book_slot"))
+
+        # Check if this slot already exists
+        slot = Slot.query.filter_by(
+            date=date,
+            start_time=start_time,
+            end_time=end_time,
+            branch_id=branch_obj.id,
+            section_id=section_obj.id
+        ).first()
+
+        if slot:
+            booking = Booking.query.filter_by(slot_id=slot.id).first()
+            if booking:
                 flash("This slot is already booked!", "danger")
             else:
-                mongo.db.slots.update_one(
-                    {"_id": existing["_id"]},
-                    {"$set": {"booked_by": user_id}}
-                )
+                new_booking = Booking(slot_id=slot.id, user_id=user_id)
+                db.session.add(new_booking)
+                db.session.commit()
                 flash("Slot booked successfully!", "success")
         else:
-            # Insert new slot
-            mongo.db.slots.insert_one({
-                "date": date,
-                "time": time,
-                "branch": branch,
-                "section": section,
-                "booked_by": user_id
-            })
+            # Create new slot and book it
+            slot = Slot(
+                date=date,
+                start_time=start_time,
+                end_time=end_time,
+                branch_id=branch_obj.id,
+                section_id=section_obj.id
+            )
+            db.session.add(slot)
+            db.session.commit()
+            new_booking = Booking(slot_id=slot.id, user_id=user_id)
+            db.session.add(new_booking)
+            db.session.commit()
             flash("Slot created and booked!", "success")
 
         return redirect(url_for("slot_bp.book_slot"))
 
-    # Fetch all slots for display
-    all_slots = list(mongo.db.slots.find())
+    all_slots = Slot.query.all()
     return render_template("book_slot.html", slots=all_slots,
                            branches=BANGALORE_BRANCHES,
                            sections=STORE_SECTIONS)
@@ -73,18 +91,17 @@ def calendar_view():
     if 'user_id' not in session:
         return redirect(url_for('auth_bp.login'))
 
-    user_id = str(session['user_id'])  # ✅ Pass as string
+    user_id = int(session['user_id'])
 
     today = datetime.today().date()
     next_seven_days = [today + timedelta(days=i) for i in range(7)]
 
-    slots = list(mongo.db.slots.find({
-        "date": {"$in": [d.strftime("%Y-%m-%d") for d in next_seven_days]}
-    }))
+    slots = Slot.query.filter(Slot.date.in_(
+        [d for d in next_seven_days])).all()
 
     slot_map = {d.strftime("%Y-%m-%d"): [] for d in next_seven_days}
     for slot in slots:
-        slot_map[slot["date"]].append(slot)
+        slot_map[slot.date.strftime("%Y-%m-%d")].append(slot)
 
     return render_template("calendar_view.html", slot_map=slot_map, user_id=user_id, days=next_seven_days)
 
@@ -94,48 +111,68 @@ def book_from_calendar():
     if 'user_id' not in session:
         return redirect(url_for("auth_bp.login"))
 
-    user_id = ObjectId(session["user_id"])  # ✅ Important fix
-
+    user_id = int(session["user_id"])
     date = request.form["date"]
-    time = request.form["time"]
+    slot_range = request.form["slot_range"]
     branch = request.form["branch"]
     section = request.form["section"]
 
-    existing_booking = mongo.db.slots.find_one({
-        "booked_by": user_id,
-        "date": date,
-        "branch": branch
-    })
+    start_time, end_time = SLOT_TIME_RANGES.get(slot_range, (None, None))
+    if not start_time or not end_time:
+        flash("Invalid slot selected.", "danger")
+        return redirect(url_for("slot_bp.calendar_view"))
 
+    branch_obj = Branch.query.filter_by(name=branch).first()
+    section_obj = Section.query.filter_by(name=section).first()
+    if not branch_obj or not section_obj:
+        flash("Invalid branch or section.", "danger")
+        return redirect(url_for("slot_bp.calendar_view"))
+
+    # Prevent multiple bookings on same branch/date
+    existing_booking = (
+        db.session.query(Booking)
+        .join(Slot)
+        .filter(Booking.user_id == user_id,
+                Slot.date == date,
+                Slot.branch_id == branch_obj.id)
+        .first()
+    )
     if existing_booking:
         flash(
             f"You’ve already booked a slot in {branch} on {date}.", "warning")
         return redirect(url_for("slot_bp.calendar_view"))
 
-    existing_slot = mongo.db.slots.find_one({
-        "date": date,
-        "time": time,
-        "branch": branch,
-        "section": section
-    })
+    slot = Slot.query.filter_by(
+        date=date,
+        start_time=start_time,
+        end_time=end_time,
+        branch_id=branch_obj.id,
+        section_id=section_obj.id
+    ).first()
 
-    if existing_slot:
-        if existing_slot.get("booked_by"):
+    if slot:
+        booking = Booking.query.filter_by(slot_id=slot.id).first()
+        if booking:
             flash("This slot is already booked!", "danger")
         else:
-            mongo.db.slots.update_one(
-                {"_id": existing_slot["_id"]},
-                {"$set": {"booked_by": user_id}}  # ✅ This is now fixed
-            )
+            new_booking = Booking(slot_id=slot.id, user_id=user_id)
+            db.session.add(new_booking)
+            db.session.commit()
             flash("Slot booked successfully!", "success")
     else:
-        mongo.db.slots.insert_one({
-            "date": date,
-            "time": time,
-            "branch": branch,
-            "section": section,
-            "booked_by": user_id
-        })
+        # Create slot and booking
+        slot = Slot(
+            date=date,
+            start_time=start_time,
+            end_time=end_time,
+            branch_id=branch_obj.id,
+            section_id=section_obj.id
+        )
+        db.session.add(slot)
+        db.session.commit()
+        new_booking = Booking(slot_id=slot.id, user_id=user_id)
+        db.session.add(new_booking)
+        db.session.commit()
         flash("Slot created and booked!", "success")
 
     return redirect(url_for("slot_bp.calendar_view"))
@@ -146,40 +183,22 @@ def my_bookings():
     if 'user_id' not in session:
         return redirect(url_for('auth_bp.login'))
 
-    user_id = ObjectId(session["user_id"])
+    user_id = int(session["user_id"])
     today = datetime.today().date()
 
-    all_bookings = list(mongo.db.slots.find({
-        "booked_by": user_id
-    }).sort("date", 1))
+    bookings = Booking.query.filter_by(
+        user_id=user_id).join(Slot).order_by(Slot.date).all()
 
-    past = []
-    upcoming = []
+    past, upcoming = [], []
 
-    for slot in all_bookings:
-        try:
-            # Accept both formats: "2025-07-02" and "2025/07/02"
-            if "-" in slot["date"]:
-                slot_date = datetime.strptime(slot["date"], "%Y-%m-%d").date()
-            else:
-                slot_date = datetime.strptime(slot["date"], "%Y/%m/%d").date()
-        except Exception:
-            continue
+    for booking in bookings:
+        slot = booking.slot
+        slot_date = slot.date
+        feedback = Feedback.query.filter_by(
+            booking_id=booking.id, user_id=user_id).first()
+        slot.feedback_given = bool(feedback)
+        slot.booking_id = booking.id  # Useful for feedback
 
-        # 🧠 Attach feedback info if it exists
-        feedback = mongo.db.feedback.find_one({
-            "user_id": user_id,
-            "slot_id": slot["_id"]
-        })
-
-        if feedback:
-            slot["feedback_given"] = True
-            slot["rating"] = feedback["rating"]
-            slot["comment"] = feedback.get("comment", "")
-        else:
-            slot["feedback_given"] = False
-
-        # 🧠 Categorize as past or upcoming
         if slot_date < today:
             past.append(slot)
         else:
@@ -188,20 +207,17 @@ def my_bookings():
     return render_template("my_bookings.html", upcoming=upcoming, past=past)
 
 
-@slot_bp.route("/cancel-booking/<slot_id>", methods=["POST"])
-def cancel_booking(slot_id):
+@slot_bp.route("/cancel-booking/<int:booking_id>", methods=["POST"])
+def cancel_booking(booking_id):
     if 'user_id' not in session:
         return redirect(url_for("auth_bp.login"))
 
-    user_id = ObjectId(session["user_id"])
+    user_id = int(session["user_id"])
+    booking = Booking.query.get(booking_id)
 
-    slot = mongo.db.slots.find_one({"_id": ObjectId(slot_id)})
-
-    if slot and slot.get("booked_by") == user_id:
-        mongo.db.slots.update_one(
-            {"_id": ObjectId(slot_id)},
-            {"$unset": {"booked_by": ""}}  # Remove the booking
-        )
+    if booking and booking.user_id == user_id:
+        db.session.delete(booking)
+        db.session.commit()
         flash("Your booking has been cancelled.", "info")
     else:
         flash("You are not authorized to cancel this booking.", "danger")
