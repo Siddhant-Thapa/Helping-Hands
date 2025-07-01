@@ -103,7 +103,7 @@ def calendar_view():
     for slot in slots:
         slot_map[slot.date.strftime("%Y-%m-%d")].append(slot)
 
-    return render_template("calendar_view.html", slot_map=slot_map, user_id=user_id, days=next_seven_days)
+    return render_template("calendar_view.html", slot_map=slot_map, user_id=user_id, days=next_seven_days, SLOT_TIME_RANGES=SLOT_TIME_RANGES)
 
 
 @slot_bp.route("/book-from-calendar", methods=["POST"])
