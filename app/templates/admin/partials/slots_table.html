@@ -1,0 +1,53 @@
+<div class="admin-table-container">
+    <h2>Manage Slots</h2>
+    <form method="get" action="{{ url_for('admin.dashboard') }}" style="margin-bottom: 18px;">
+        <input type="hidden" name="tab" value="slots">
+        <select name="branch">
+            <option value="">All Branches</option>
+            {% for branch in all_branches %}
+            <option value="{{ branch.name }}" {% if request.args.get('branch')==branch.name %}selected{% endif %}>{{
+                branch.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="section">
+            <option value="">All Sections</option>
+            {% for section in all_sections %}
+            <option value="{{ section.name }}" {% if request.args.get('section')==section.name %}selected{% endif %}>{{
+                section.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="date" value="{{ request.args.get('date', '') }}">
+        <button type="submit">Filter</button>
+    </form>
+    <a href="{{ url_for('manage_slots_bp.create_slot') }}" class="btn">+ Add New Slot</a>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Branch</th>
+                <th>Section</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot in slots %}
+            <tr>
+                <td>{{ slot.date }}</td>
+                <td>{{ slot.start_time }}</td>
+                <td>{{ slot.end_time }}</td>
+                <td>{{ slot.branch.name }}</td>
+                <td>{{ slot.section.name }}</td>
+                <td>
+                    <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}">Edit</a>
+                    <form action="{{ url_for('manage_slots_bp.delete_slot', slot_id=slot.id) }}" method="POST"
+                        style="display:inline;">
+                        <button type="submit" onclick="return confirm('Delete this slot?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

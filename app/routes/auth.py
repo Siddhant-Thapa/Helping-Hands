@@ -1,9 +1,12 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 import os
 from werkzeug.utils import secure_filename
 from app.models import db, User
 from app.utils.helpers import allowed_file  # If you have this helper
+
+# --- Flask-Login imports ---
+from flask_login import login_user, logout_user, login_required, current_user
 
 auth_bp = Blueprint('auth_bp', __name__)
 
@@ -43,11 +46,14 @@ def login():
 
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password_hash, password):
-            session['user_id'] = str(user.id)
-            session['user_name'] = user.name
-            session['user_role'] = user.role
+            # --- Use Flask-Login to log the user in ---
+            login_user(user)
             flash("Welcome " + user.name, "success")
-            return redirect(url_for('auth_bp.dashboard'))
+            # If you want, you can redirect admins to /admin and users to /dashboard
+            if user.is_admin_user():
+                return redirect(url_for('admin.dashboard'))
+            else:
+                return redirect(url_for('slot_bp.dashboard'))
         else:
             flash("Invalid credentials.", "danger")
 
@@ -55,20 +61,17 @@ def login():
 
 
 @auth_bp.route('/dashboard')
+@login_required  # --- Use Flask-Login's login_required ---
 def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('auth_bp.login'))
-
-    user = User.query.get(int(session['user_id']))
+    # --- Use Flask-Login's current_user ---
+    user = current_user
     return render_template("dashboard.html", user=user)
 
 
 @auth_bp.route('/profile', methods=['GET', 'POST'])
+@login_required  # --- Use Flask-Login's login_required ---
 def profile():
-    if 'user_id' not in session:
-        return redirect(url_for('auth_bp.login'))
-
-    user = User.query.get(int(session['user_id']))
+    user = current_user
 
     if request.method == 'POST':
         updated_name = request.form['name']
@@ -89,8 +92,6 @@ def profile():
                 user.photo = filename
 
         db.session.commit()
-        session['user_name'] = updated_name
-        session['user_role'] = updated_role
         flash("Profile updated successfully!", "success")
         return redirect(url_for('auth_bp.profile'))
 
@@ -98,7 +99,9 @@ def profile():
 
 
 @auth_bp.route('/logout')
+@login_required  # --- Use Flask-Login's login_required ---
 def logout():
-    session.clear()
+    # --- Use Flask-Login to log the user out ---
+    logout_user()
     flash("Logged out successfully.", "info")
     return redirect(url_for('auth_bp.home'))

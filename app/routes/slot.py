@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta, time
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from app.models import db, Slot, Booking, Feedback, Branch, Section, User
+
+# --- Flask-Login imports ---
+from flask_login import login_required, current_user
 
 slot_bp = Blueprint("slot_bp", __name__)
 
@@ -21,10 +24,10 @@ STORE_SECTIONS = [
 
 
 @slot_bp.route("/book-slot", methods=["GET", "POST"])
+@login_required  # --- Use Flask-Login's login_required ---
 def book_slot():
-    if 'user_id' not in session:
-        return redirect(url_for("auth_bp.login"))
-    user_id = int(session['user_id'])
+    # Use current_user.id instead of session['user_id']
+    user_id = current_user.id
 
     if request.method == "POST":
         date = request.form["date"]
@@ -87,11 +90,9 @@ def book_slot():
 
 
 @slot_bp.route("/calendar-view")
+@login_required  # --- Use Flask-Login's login_required ---
 def calendar_view():
-    if 'user_id' not in session:
-        return redirect(url_for('auth_bp.login'))
-
-    user_id = int(session['user_id'])
+    user_id = current_user.id
 
     today = datetime.today().date()
     next_seven_days = [today + timedelta(days=i) for i in range(7)]
@@ -107,11 +108,9 @@ def calendar_view():
 
 
 @slot_bp.route("/book-from-calendar", methods=["POST"])
+@login_required  # --- Use Flask-Login's login_required ---
 def book_from_calendar():
-    if 'user_id' not in session:
-        return redirect(url_for("auth_bp.login"))
-
-    user_id = int(session["user_id"])
+    user_id = current_user.id
     date = request.form["date"]
     slot_range = request.form["slot_range"]
     branch = request.form["branch"]
@@ -179,11 +178,9 @@ def book_from_calendar():
 
 
 @slot_bp.route("/my-bookings")
+@login_required  # --- Use Flask-Login's login_required ---
 def my_bookings():
-    if 'user_id' not in session:
-        return redirect(url_for('auth_bp.login'))
-
-    user_id = int(session["user_id"])
+    user_id = current_user.id
     today = datetime.today().date()
 
     bookings = Booking.query.filter_by(
@@ -208,11 +205,9 @@ def my_bookings():
 
 
 @slot_bp.route("/cancel-booking/<int:booking_id>", methods=["POST"])
+@login_required  # --- Use Flask-Login's login_required ---
 def cancel_booking(booking_id):
-    if 'user_id' not in session:
-        return redirect(url_for("auth_bp.login"))
-
-    user_id = int(session["user_id"])
+    user_id = current_user.id
     booking = Booking.query.get(booking_id)
 
     if booking and booking.user_id == user_id:
@@ -226,10 +221,14 @@ def cancel_booking(booking_id):
 
 
 @slot_bp.route("/create-slot", methods=["GET", "POST"])
+@login_required  # --- Use Flask-Login's login_required ---
 def create_slot():
-    if 'user_id' not in session:
-        return redirect(url_for("auth_bp.login"))
-
     # 🚫 Temporary block everyone from accessing this route
     flash("🚫 This feature is restricted to admins.", "danger")
     return redirect(url_for("slot_bp.calendar_view"))
+
+
+@slot_bp.route("/dashboard")
+@login_required  # --- Use Flask-Login's login_required ---
+def dashboard():
+    return render_template("dashboard.html")

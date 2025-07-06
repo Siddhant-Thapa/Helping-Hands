@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-table-container">
+    <h2>Edit Slot</h2>
+    <form method="POST">
+        <label>Date:</label>
+        <input type="date" name="date" value="{{ slot.date }}" required><br>
+        <label>Time Slot:</label>
+        <select name="slot_range" required>
+            {% set slot_range = None %}
+            {% for key, (start, end) in SLOT_TIME_RANGES.items() %}
+            {% if slot.start_time|string == start and slot.end_time|string == end %}
+            {% set slot_range = key %}
+            {% endif %}
+            {% endfor %}
+            <option value="9-5" {% if slot_range=='9-5' %}selected{% endif %}>9 AM - 5 PM</option>
+            <option value="10-6" {% if slot_range=='10-6' %}selected{% endif %}>10 AM - 6 PM</option>
+            <option value="11-7" {% if slot_range=='11-7' %}selected{% endif %}>11 AM - 7 PM</option>
+            <option value="12-8" {% if slot_range=='12-8' %}selected{% endif %}>12 PM - 8 PM</option>
+        </select><br>
+        <label>Branch:</label>
+        <select name="branch_id" required>
+            {% for branch in branches %}
+            <option value="{{ branch.id }}" {% if branch.id==slot.branch_id %}selected{% endif %}>{{ branch.name }}
+            </option>
+            {% endfor %}
+        </select><br>
+        <label>Section:</label>
+        <select name="section_id" required>
+            {% for section in sections %}
+            <option value="{{ section.id }}" {% if section.id==slot.section_id %}selected{% endif %}>{{ section.name }}
+            </option>
+            {% endfor %}
+        </select><br>
+        <button type="submit">Update Slot</button>
+    </form>
+    <a href="{{ url_for('admin.dashboard', tab='slots') }}">Back</a>
+</div>
+{% endblock %}

@@ -1,7 +1,8 @@
 from flask import Flask
 from flask_migrate import Migrate
 import os
-from app.models import db  # <-- import db from your models.py
+from app.models import db, User  # <- Make sure path is correct!
+from flask_login import LoginManager
 
 migrate = Migrate()
 
@@ -22,6 +23,16 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
+    # -------- Flask-Login Setup START ----------
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth_bp.login'   # endpoint for your login page
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+    # -------- Flask-Login Setup END ------------
+
     # Register routes
     from app.routes.auth import auth_bp
     app.register_blueprint(auth_bp)
@@ -32,6 +43,13 @@ def create_app():
     from app.routes.feedback import feedback_bp
     app.register_blueprint(feedback_bp)
 
-    # (Later: register other blueprints for profile, dashboard, admin, etc.)
+    from app.routes.admin import admin_bp
+    app.register_blueprint(admin_bp)
+
+    from app.routes.manage_slots import manage_slots_bp
+    app.register_blueprint(manage_slots_bp)
+
+    from app.routes.manage_feedback import manage_feedback_bp
+    app.register_blueprint(manage_feedback_bp)
 
     return app

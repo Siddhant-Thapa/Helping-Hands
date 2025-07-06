@@ -1,0 +1,31 @@
+<div class="admin-table-container">
+    <h2>All Sections</h2>
+    <form method="POST" action="{{ url_for('admin.create_section') }}" style="margin-bottom: 18px;">
+        <input type="text" name="name" placeholder="Section Name" required>
+        <input type="text" name="type" placeholder="Type (e.g. Veg, Non-Veg)" required>
+        <button type="submit">Add Section</button>
+    </form>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for section in sections %}
+            <tr>
+                <td>{{ section.name }}</td>
+                <td>{{ section.type }}</td>
+                <td>
+                    <form action="{{ url_for('admin.delete_section', section_id=section.id) }}" method="POST"
+                        style="display:inline;">
+                        <button type="submit" onclick="return confirm('Delete this section?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

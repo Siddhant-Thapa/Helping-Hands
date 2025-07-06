@@ -278,3 +278,142 @@ select {
 .cancel-btn:hover {
     background-color: #dc2626;
 }
+
+nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: right;
+    padding: 10px 40px;
+    background: transparent;
+    /* or a color if you want */
+}
+
+nav ul {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+nav ul li {
+    display: inline-block;
+    margin-left: 20px;
+}
+
+
+/* Admin Manage Slots Styles */
+.admin-table-container {
+    margin: 32px auto;
+    max-width: 960px;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+    padding: 32px 24px;
+}
+
+.admin-table-container h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #222;
+}
+
+.admin-table-container .btn {
+    background: #2979ff;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 18px;
+    display: inline-block;
+    transition: background 0.2s;
+}
+
+.admin-table-container .btn:hover {
+    background: #1769aa;
+    color: #fff;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    background: #fafbfc;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 10px 14px;
+    text-align: left;
+}
+
+.admin-table th {
+    background: #e3ecf8;
+    color: #333;
+    font-weight: 600;
+}
+
+.admin-table tr:nth-child(even) {
+    background: #f5f7fa;
+}
+
+.admin-table tr:hover {
+    background: #dbeafe;
+}
+
+.admin-table a {
+    color: #2979ff;
+    font-weight: 500;
+    margin-right: 10px;
+}
+
+.admin-table form {
+    display: inline;
+}
+
+.admin-table button {
+    background: #ff5252;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.admin-table button:hover {
+    background: #b71c1c;
+}
+
+.dashboard-stats {
+    display: flex;
+    gap: 28px;
+    margin-bottom: 18px;
+}
+
+.stat-card {
+    background: #f5f7fa;
+    border-radius: 10px;
+    padding: 18px 28px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+.stat-card h3 {
+    font-size: 2.2rem;
+    margin: 0 0 8px 0;
+    color: #2979ff;
+}
+
+.stat-card p {
+    margin: 0;
+    color: #222;
+    font-size: 1.07rem;
+    font-weight: 500;
+}

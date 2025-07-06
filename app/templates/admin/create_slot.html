@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-table-container">
+    <h2>Add New Slot</h2>
+    <form method="POST">
+        <label>Date:</label>
+        <input type="date" name="date" required><br>
+        <label>Time Slot:</label>
+        <select name="slot_range" required>
+            <option value="9-5">9 AM - 5 PM</option>
+            <option value="10-6">10 AM - 6 PM</option>
+            <option value="11-7">11 AM - 7 PM</option>
+            <option value="12-8">12 PM - 8 PM</option>
+        </select><br>
+        <label>Branch:</label>
+        <select name="branch_id" required>
+            {% for branch in branches %}
+            <option value="{{ branch.id }}">{{ branch.name }}</option>
+            {% endfor %}
+        </select><br>
+        <label>Section:</label>
+        <select name="section_id" required>
+            {% for section in sections %}
+            <option value="{{ section.id }}">{{ section.name }}</option>
+            {% endfor %}
+        </select><br>
+        <button type="submit">Create Slot</button>
+    </form>
+    <a href="{{ url_for('admin.dashboard', tab='slots') }}">Back</a>
+</div>
+{% endblock %}

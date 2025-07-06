@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <!-- SweetAlert2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 </head>
 
 <body class="{{ body_class|default('') }}">
@@ -16,6 +15,27 @@
     <div class="flash {{ category }}">{{ message }}</div>
     {% endfor %}
     {% endwith %}
+
+    <!-- START Navbar -->
+    {% if not hide_navbar %}
+    <nav>
+        <ul>
+            {% if current_user.is_authenticated %}
+            {% if current_user.is_admin or (current_user.role and current_user.role.lower() == 'admin') %}
+            <li><a href="{{ url_for('admin.dashboard') }}">Admin Panel</a></li>
+            {% else %}
+            <li><a href="{{ url_for('slot_bp.dashboard') }}">User Dashboard</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('auth_bp.logout') }}">Logout</a></li>
+            {% else %}
+            <li><a href="{{ url_for('auth_bp.login') }}">Login</a></li>
+            <li><a href="{{ url_for('auth_bp.register') }}">Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    <!-- END Navbar -->
+
     {% block content %}{% endblock %}
 </body>
 

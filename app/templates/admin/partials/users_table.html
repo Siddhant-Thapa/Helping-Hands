@@ -1,0 +1,39 @@
+<div class="admin-table-container">
+    <h2>All Users</h2>
+    <form method="get" action="{{ url_for('admin.dashboard') }}" style="margin-bottom: 18px;">
+        <input type="hidden" name="tab" value="users">
+        <input type="text" name="q" placeholder="Search users..." value="{{ request.args.get('q', '') }}">
+        <button type="submit">Search</button>
+    </form>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    {% if not user.is_admin %}
+                    <form action="{{ url_for('admin.promote_user', user_id=user.id) }}" method="POST"
+                        style="display:inline;">
+                        <button type="submit">Promote to Admin</button>
+                    </form>
+                    {% endif %}
+                    <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST"
+                        style="display:inline;">
+                        <button type="submit" onclick="return confirm('Delete this user?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,10 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_login import UserMixin
 
 db = SQLAlchemy()
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -16,6 +17,10 @@ class User(db.Model):
 
     bookings = db.relationship('Booking', backref='user', lazy=True)
     feedbacks = db.relationship('Feedback', backref='user', lazy=True)
+
+    def is_admin_user(self):
+        # You can use either field or both for flexibility
+        return self.is_admin or self.role.lower() == 'admin'
 
 
 class Branch(db.Model):

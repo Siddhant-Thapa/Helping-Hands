@@ -1,0 +1,83 @@
+<div class="admin-table-container">
+    <h2>All Bookings</h2>
+    <form method="get" action="{{ url_for('admin.dashboard') }}" style="margin-bottom: 18px;">
+        <input type="hidden" name="tab" value="bookings">
+        <input type="text" name="user" placeholder="Search User..." value="{{ request.args.get('user', '') }}">
+        <select name="branch">
+            <option value="">All Branches</option>
+            {% for branch in all_branches %}
+            <option value="{{ branch.name }}" {% if request.args.get('branch')==branch.name %}selected{% endif %}>{{
+                branch.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="section">
+            <option value="">All Sections</option>
+            {% for section in all_sections %}
+            <option value="{{ section.name }}" {% if request.args.get('section')==section.name %}selected{% endif %}>{{
+                section.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="date" value="{{ request.args.get('date', '') }}">
+        <select name="status">
+            <option value="">All Statuses</option>
+            <option value="booked" {% if request.args.get('status')=='booked' %}selected{% endif %}>Booked</option>
+            <option value="cancelled" {% if request.args.get('status')=='cancelled' %}selected{% endif %}>Cancelled
+            </option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Date</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Branch</th>
+                <th>Section</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td>{{ booking.user.name }}</td>
+                <td>{{ booking.slot.date }}</td>
+                <td>{{ booking.slot.start_time }}</td>
+                <td>{{ booking.slot.end_time }}</td>
+                <td>{{ booking.slot.branch.name }}</td>
+                <td>{{ booking.slot.section.name }}</td>
+                <td>{{ booking.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 style="margin-top:32px;">Unbooked Slots</h2>
+    <table class="admin-table" style="background: #fffbe9;">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Branch</th>
+                <th>Section</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot in unbooked_slots %}
+            <tr>
+                <td>{{ slot.date }}</td>
+                <td>{{ slot.start_time }}</td>
+                <td>{{ slot.end_time }}</td>
+                <td>{{ slot.branch.name }}</td>
+                <td>{{ slot.section.name }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align:center;">No unbooked slots 🎉</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

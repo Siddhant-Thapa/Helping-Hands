@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-table-container">
+    <h2>Feedback & Ratings</h2>
+    <form method="get" action="{{ url_for('manage_feedback_bp.feedback_dashboard') }}" style="margin-bottom: 18px;">
+        <input type="text" name="user" placeholder="Search User..." value="{{ request.args.get('user', '') }}">
+        <select name="branch">
+            <option value="">All Branches</option>
+            {% for branch in all_branches %}
+            <option value="{{ branch.name }}" {% if request.args.get('branch')==branch.name %}selected{% endif %}>{{
+                branch.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="section">
+            <option value="">All Sections</option>
+            {% for section in all_sections %}
+            <option value="{{ section.name }}" {% if request.args.get('section')==section.name %}selected{% endif %}>{{
+                section.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="date" value="{{ request.args.get('date', '') }}">
+        <select name="min_rating">
+            <option value="">All Ratings</option>
+            <option value="2" {% if request.args.get('min_rating')=='2' %}selected{% endif %}>≤ 2 Stars</option>
+            <option value="3" {% if request.args.get('min_rating')=='3' %}selected{% endif %}>≤ 3 Stars</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Branch</th>
+                <th>Section</th>
+                <th>Date</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Submitted At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for feedback in feedbacks %}
+            <tr {% if feedback.rating <=2 %}style="background: #ffeaea;" {% endif %}>
+                <td>{{ feedback.user.name }}</td>
+                <td>{{ feedback.booking.slot.branch.name }}</td>
+                <td>{{ feedback.booking.slot.section.name }}</td>
+                <td>{{ feedback.booking.slot.date }}</td>
+                <td>
+                    {% for i in range(feedback.rating) %}
+                    <span style="color:gold;">&#9733;</span>
+                    {% endfor %}
+                    ({{ feedback.rating }})
+                </td>
+                <td>{{ feedback.comment or '' }}</td>
+                <td>{{ feedback.submitted_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align:center;">No feedback found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

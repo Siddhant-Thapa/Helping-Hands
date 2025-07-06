@@ -1,0 +1,30 @@
+<div class="admin-table-container">
+    <h2>Welcome, {{ current_user.name }}!</h2>
+    <p style="margin-bottom: 32px;">
+        This is your Admin Dashboard.<br>
+        Use the menu on the left to manage slots, users, branches, sections, and bookings.
+    </p>
+    <!-- Quick stats -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <h3>{{ all_slots|length }}</h3>
+            <p>Slots</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ all_users|length }}</h3>
+            <p>Users</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ all_branches|length }}</h3>
+            <p>Branches</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ all_sections|length }}</h3>
+            <p>Sections</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ all_bookings|length }}</h3>
+            <p>Bookings</p>
+        </div>
+    </div>
+</div>
