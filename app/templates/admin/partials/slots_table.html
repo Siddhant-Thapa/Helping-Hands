@@ -2,12 +2,14 @@
     <h2>Manage Slots</h2>
     <a href="{{ url_for('manage_slots_bp.create_slot') }}" class="btn" style="margin-bottom: 18px;">+ Add Slot</a>
 
+    <!-- Today's Slots -->
+    <h3>Today</h3>
     <table class="admin-table">
         <thead>
             <tr>
                 <th>Date</th>
-                <th>Start Time</th>
-                <th>End Time</th>
+                <th>Start</th>
+                <th>End</th>
                 <th>Branch</th>
                 <th>Section</th>
                 <th>Status</th>
@@ -15,7 +17,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for slot in slots %}
+            {% for slot in slots_today %}
             <tr>
                 <td>{{ slot.date }}</td>
                 <td>{{ slot.start_time }}</td>
@@ -23,11 +25,8 @@
                 <td>{{ slot.branch.name }}</td>
                 <td>{{ slot.section.name }}</td>
                 <td>
-                    {% if slot.bookings %}
-                    <span style="color:#991b1b; font-weight:bold;">Booked</span>
-                    {% else %}
-                    <span style="color:#059669; font-weight:bold;">Unbooked</span>
-                    {% endif %}
+                    {% if slot.bookings %}<b style="color:#991b1b;">Booked</b>{% else %}<b
+                        style="color:#059669;">Unbooked</b>{% endif %}
                 </td>
                 <td>
                     <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}">Edit</a>
@@ -41,7 +40,95 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="7" style="text-align:center;">No slots found.</td>
+                <td colspan="7" style="text-align:center;">No slots for today.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Upcoming Slots -->
+    <h3>Upcoming</h3>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Branch</th>
+                <th>Section</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot in slots_upcoming %}
+            <tr>
+                <td>{{ slot.date }}</td>
+                <td>{{ slot.start_time }}</td>
+                <td>{{ slot.end_time }}</td>
+                <td>{{ slot.branch.name }}</td>
+                <td>{{ slot.section.name }}</td>
+                <td>
+                    {% if slot.bookings %}<b style="color:#991b1b;">Booked</b>{% else %}<b
+                        style="color:#059669;">Unbooked</b>{% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}">Edit</a>
+                    {% if not slot.bookings %}
+                    <form action="{{ url_for('manage_slots_bp.delete_slot', slot_id=slot.id) }}" method="POST"
+                        style="display:inline;">
+                        <button type="submit" onclick="return confirm('Delete this slot?');">Delete</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align:center;">No upcoming slots.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Past Slots -->
+    <h3>Past</h3>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Branch</th>
+                <th>Section</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot in slots_past %}
+            <tr>
+                <td>{{ slot.date }}</td>
+                <td>{{ slot.start_time }}</td>
+                <td>{{ slot.end_time }}</td>
+                <td>{{ slot.branch.name }}</td>
+                <td>{{ slot.section.name }}</td>
+                <td>
+                    {% if slot.bookings %}<b style="color:#991b1b;">Booked</b>{% else %}<b
+                        style="color:#059669;">Unbooked</b>{% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}">Edit</a>
+                    {% if not slot.bookings %}
+                    <form action="{{ url_for('manage_slots_bp.delete_slot', slot_id=slot.id) }}" method="POST"
+                        style="display:inline;">
+                        <button type="submit" onclick="return confirm('Delete this slot?');">Delete</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align:center;">No past slots.</td>
             </tr>
             {% endfor %}
         </tbody>

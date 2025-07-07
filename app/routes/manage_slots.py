@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required
 from app.models import db, Slot, Branch, Section
 from app.utils.helpers import admin_required
+from datetime import date
 
 manage_slots_bp = Blueprint(
     'manage_slots_bp', __name__, url_prefix='/admin/slots')
@@ -30,11 +31,13 @@ def list_slots():
     slots = Slot.query.order_by(Slot.date, Slot.start_time).all()
     branches = Branch.query.all()
     sections = Section.query.all()
+    today = date.today()
     return render_template(
         'admin/manage_slots.html',
         slots=slots,
         branches=branches,
-        sections=sections
+        sections=sections,
+        today=today
     )
 
 
