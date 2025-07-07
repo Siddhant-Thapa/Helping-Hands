@@ -1,8 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
 <div class="admin-table-container">
     <h2>All Users</h2>
-    <form method="get" action="{{ url_for('admin.dashboard') }}" style="margin-bottom: 18px;">
-        <input type="hidden" name="tab" value="users">
-        <input type="text" name="q" placeholder="Search users..." value="{{ request.args.get('q', '') }}">
+    <form method="get" action="{{ url_for('manage_users_bp.users_dashboard') }}" style="margin-bottom: 18px;">
+        <input type="text" name="q" placeholder="Search users..." value="{{ q or '' }}">
         <button type="submit">Search</button>
     </form>
     <table class="admin-table">
@@ -22,12 +23,12 @@
                 <td>{{ user.role }}</td>
                 <td>
                     {% if not user.is_admin %}
-                    <form action="{{ url_for('admin.promote_user', user_id=user.id) }}" method="POST"
+                    <form action="{{ url_for('manage_users_bp.promote_user', user_id=user.id) }}" method="POST"
                         style="display:inline;">
                         <button type="submit">Promote to Admin</button>
                     </form>
                     {% endif %}
-                    <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST"
+                    <form action="{{ url_for('manage_users_bp.delete_user', user_id=user.id) }}" method="POST"
                         style="display:inline;">
                         <button type="submit" onclick="return confirm('Delete this user?');">Delete</button>
                     </form>
@@ -36,4 +37,7 @@
             {% endfor %}
         </tbody>
     </table>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn" style="margin-top:18px;">← Back to Dashboard</a>
+
 </div>
+{% endblock %}

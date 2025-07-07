@@ -1,8 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
 <div class="admin-table-container">
     <h2>All Sections</h2>
-    <form method="POST" action="{{ url_for('admin.create_section') }}" style="margin-bottom: 18px;">
+    <form method="POST" style="margin-bottom: 18px;">
         <input type="text" name="name" placeholder="Section Name" required>
-        <input type="text" name="type" placeholder="Type (e.g. Veg, Non-Veg)" required>
+        <input type="text" name="type" placeholder="Type (Veg/Non-Veg/etc.)" required>
         <button type="submit">Add Section</button>
     </form>
     <table class="admin-table">
@@ -19,8 +21,8 @@
                 <td>{{ section.name }}</td>
                 <td>{{ section.type }}</td>
                 <td>
-                    <form action="{{ url_for('admin.delete_section', section_id=section.id) }}" method="POST"
-                        style="display:inline;">
+                    <form action="{{ url_for('manage_sections_bp.delete_section', section_id=section.id) }}"
+                        method="POST" style="display:inline;">
                         <button type="submit" onclick="return confirm('Delete this section?');">Delete</button>
                     </form>
                 </td>
@@ -28,4 +30,6 @@
             {% endfor %}
         </tbody>
     </table>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn" style="margin-top:18px;">← Back to Dashboard</a>
 </div>
+{% endblock %}

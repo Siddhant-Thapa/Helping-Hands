@@ -7,25 +7,29 @@
             <li{% if tab=='home' or not tab %} class="active" {% endif %}>
                 <a href="{{ url_for('admin.dashboard', tab='home') }}">🏠 Dashboard</a>
                 </li>
-                <li{% if tab=='slots' %} class="active" {% endif %}>
-                    <a href="{{ url_for('admin.dashboard', tab='slots') }}">🗓️ Manage Slots</a>
+                <li{% if request.path.startswith('/admin/bookings') %} class="active" {% endif %}>
+                    <a href="{{ url_for('manage_bookings_bp.bookings_dashboard') }}">📖 View Bookings</a>
                     </li>
-                    <li{% if tab=='users' %} class="active" {% endif %}>
-                        <a href="{{ url_for('admin.dashboard', tab='users') }}">👥 Manage Users</a>
+                    <li{% if request.path.startswith('/admin/slots') %} class="active" {% endif %}>
+                        <a href="{{ url_for('admin.dashboard', tab='slots') }}">🗓️ Manage Slots</a>
                         </li>
-                        <li{% if tab=='branches' %} class="active" {% endif %}>
-                            <a href="{{ url_for('admin.dashboard', tab='branches') }}">🏬 Manage Branches</a>
+                        <li{% if request.path.startswith('/admin/users') %} class="active" {% endif %}>
+                            <a href="{{ url_for('manage_users_bp.users_dashboard') }}">👥 Manage Users</a>
                             </li>
-                            <li{% if tab=='sections' %} class="active" {% endif %}>
-                                <a href="{{ url_for('admin.dashboard', tab='sections') }}">🏷️ Manage Sections</a>
+                            <li{% if request.path.startswith('/admin/branches') %} class="active" {% endif %}>
+                                <a href="{{ url_for('manage_branches_bp.branches_dashboard') }}">🏬 Manage Branches</a>
                                 </li>
-                                <li{% if tab=='bookings' %} class="active" {% endif %}>
-                                    <a href="{{ url_for('admin.dashboard', tab='bookings') }}">📖 View Bookings</a>
+                                <li{% if request.path.startswith('/admin/sections') %} class="active" {% endif %}>
+                                    <a href="{{ url_for('manage_sections_bp.sections_dashboard') }}">🏷️ Manage
+                                        Sections</a>
                                     </li>
                                     <li{% if request.path.startswith('/admin/feedback') %} class="active" {% endif %}>
                                         <a href="{{ url_for('manage_feedback_bp.feedback_dashboard') }}">⭐ Feedback &
                                             Ratings</a>
                                         </li>
+
+
+
 
         </ul>
     </aside>
@@ -34,14 +38,6 @@
         {% include 'admin/partials/dashboard_home.html' %}
         {% elif tab == 'slots' %}
         {% include 'admin/partials/slots_table.html' %}
-        {% elif tab == 'users' %}
-        {% include 'admin/partials/users_table.html' %}
-        {% elif tab == 'branches' %}
-        {% include 'admin/partials/branches_table.html' %}
-        {% elif tab == 'sections' %}
-        {% include 'admin/partials/sections_table.html' %}
-        {% elif tab == 'bookings' %}
-        {% include 'admin/partials/bookings_table.html' %}
         {% endif %}
     </main>
 </div>

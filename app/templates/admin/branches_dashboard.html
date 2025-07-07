@@ -1,6 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
 <div class="admin-table-container">
     <h2>All Branches</h2>
-    <form method="POST" action="{{ url_for('admin.create_branch') }}" style="margin-bottom: 18px;">
+    <form method="POST" style="margin-bottom: 18px;">
         <input type="text" name="name" placeholder="Branch Name" required>
         <input type="text" name="address" placeholder="Address" required>
         <input type="text" name="city" placeholder="City" required>
@@ -22,7 +24,7 @@
                 <td>{{ branch.address }}</td>
                 <td>{{ branch.city }}</td>
                 <td>
-                    <form action="{{ url_for('admin.delete_branch', branch_id=branch.id) }}" method="POST"
+                    <form action="{{ url_for('manage_branches_bp.delete_branch', branch_id=branch.id) }}" method="POST"
                         style="display:inline;">
                         <button type="submit" onclick="return confirm('Delete this branch?');">Delete</button>
                     </form>
@@ -31,4 +33,6 @@
             {% endfor %}
         </tbody>
     </table>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn" style="margin-top:18px;">← Back to Dashboard</a>
 </div>
+{% endblock %}

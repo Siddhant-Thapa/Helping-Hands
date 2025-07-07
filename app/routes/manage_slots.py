@@ -15,6 +15,14 @@ SLOT_TIME_RANGES = {
 }
 
 
+# @manage_slots_bp.route('/')
+# @login_required
+# @admin_required
+# def list_slots():
+#     slots = Slot.query.order_by(Slot.date, Slot.start_time).all()
+#     branches = Branch.query.all()
+#     sections = Section.query.all()
+#     return render_template('admin/manage_slots.html', slots=slots, branches=branches, sections=sections)
 @manage_slots_bp.route('/')
 @login_required
 @admin_required
@@ -22,7 +30,12 @@ def list_slots():
     slots = Slot.query.order_by(Slot.date, Slot.start_time).all()
     branches = Branch.query.all()
     sections = Section.query.all()
-    return render_template('admin/manage_slots.html', slots=slots, branches=branches, sections=sections)
+    return render_template(
+        'admin/manage_slots.html',
+        slots=slots,
+        branches=branches,
+        sections=sections
+    )
 
 
 @manage_slots_bp.route('/create', methods=['GET', 'POST'])
@@ -86,6 +99,9 @@ def edit_slot(slot_id):
 @admin_required
 def delete_slot(slot_id):
     slot = Slot.query.get_or_404(slot_id)
+    if slot.bookings:
+        flash("Cannot delete: This slot has existing bookings.", "danger")
+        return redirect(url_for('manage_slots_bp.list_slots'))
     db.session.delete(slot)
     db.session.commit()
     flash('Slot deleted!', 'info')

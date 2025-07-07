@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 import os
 from app.models import db, User  # <- Make sure path is correct!
 from flask_login import LoginManager
+from flask import render_template, request, redirect, flash, url_for
 
 migrate = Migrate()
 
@@ -46,10 +47,38 @@ def create_app():
     from app.routes.admin import admin_bp
     app.register_blueprint(admin_bp)
 
+    from app.routes.manage_users import manage_users_bp
+    app.register_blueprint(manage_users_bp)
+
+    from app.routes.manage_branches import manage_branches_bp
+    app.register_blueprint(manage_branches_bp)
+
+    from app.routes.manage_sections import manage_sections_bp
+    app.register_blueprint(manage_sections_bp)
+
+    # from app.routes.manage_bookings import manage_bookings_bp
+    # app.register_blueprint(manage_bookings_bp)
+    from app.routes.manage_bookings import manage_bookings_bp
+    app.register_blueprint(manage_bookings_bp)
+
     from app.routes.manage_slots import manage_slots_bp
     app.register_blueprint(manage_slots_bp)
 
     from app.routes.manage_feedback import manage_feedback_bp
     app.register_blueprint(manage_feedback_bp)
+
+    # ----------- ERROR HANDLERS START -----------
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return render_template('404.html'), 404
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template('403.html'), 403
+
+    @app.errorhandler(500)
+    def internal_error(e):
+        return render_template('500.html'), 500
 
     return app

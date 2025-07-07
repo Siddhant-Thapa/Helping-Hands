@@ -1,25 +1,7 @@
 <div class="admin-table-container">
     <h2>Manage Slots</h2>
-    <form method="get" action="{{ url_for('admin.dashboard') }}" style="margin-bottom: 18px;">
-        <input type="hidden" name="tab" value="slots">
-        <select name="branch">
-            <option value="">All Branches</option>
-            {% for branch in all_branches %}
-            <option value="{{ branch.name }}" {% if request.args.get('branch')==branch.name %}selected{% endif %}>{{
-                branch.name }}</option>
-            {% endfor %}
-        </select>
-        <select name="section">
-            <option value="">All Sections</option>
-            {% for section in all_sections %}
-            <option value="{{ section.name }}" {% if request.args.get('section')==section.name %}selected{% endif %}>{{
-                section.name }}</option>
-            {% endfor %}
-        </select>
-        <input type="date" name="date" value="{{ request.args.get('date', '') }}">
-        <button type="submit">Filter</button>
-    </form>
-    <a href="{{ url_for('manage_slots_bp.create_slot') }}" class="btn">+ Add New Slot</a>
+    <a href="{{ url_for('manage_slots_bp.create_slot') }}" class="btn" style="margin-bottom: 18px;">+ Add Slot</a>
+
     <table class="admin-table">
         <thead>
             <tr>
@@ -28,6 +10,7 @@
                 <th>End Time</th>
                 <th>Branch</th>
                 <th>Section</th>
+                <th>Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -40,12 +23,25 @@
                 <td>{{ slot.branch.name }}</td>
                 <td>{{ slot.section.name }}</td>
                 <td>
+                    {% if slot.bookings %}
+                    <span style="color:#991b1b; font-weight:bold;">Booked</span>
+                    {% else %}
+                    <span style="color:#059669; font-weight:bold;">Unbooked</span>
+                    {% endif %}
+                </td>
+                <td>
                     <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}">Edit</a>
+                    {% if not slot.bookings %}
                     <form action="{{ url_for('manage_slots_bp.delete_slot', slot_id=slot.id) }}" method="POST"
                         style="display:inline;">
                         <button type="submit" onclick="return confirm('Delete this slot?');">Delete</button>
                     </form>
+                    {% endif %}
                 </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align:center;">No slots found.</td>
             </tr>
             {% endfor %}
         </tbody>

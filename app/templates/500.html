@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="error-page">
+    <h1 style="font-size:3em; color:#ea4335;">500</h1>
+    <h2>Something went wrong!</h2>
+    <p>Sorry, an internal error occurred. Please try again later.</p>
+    <a href="{{ url_for('auth_bp.home') }}" class="btn">Go to Home</a>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('admin.dashboard') }}" class="btn">Go to Dashboard</a>
+    {% endif %}
+</div>
+{% endblock %}

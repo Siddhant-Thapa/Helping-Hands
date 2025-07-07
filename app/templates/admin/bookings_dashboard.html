@@ -1,7 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
 <div class="admin-table-container">
     <h2>All Bookings</h2>
-    <form method="get" action="{{ url_for('admin.dashboard') }}" style="margin-bottom: 18px;">
-        <input type="hidden" name="tab" value="bookings">
+    <form method="get" style="margin-bottom: 18px;">
         <input type="text" name="user" placeholder="Search User..." value="{{ request.args.get('user', '') }}">
         <select name="branch">
             <option value="">All Branches</option>
@@ -52,7 +53,6 @@
             {% endfor %}
         </tbody>
     </table>
-
     <h2 style="margin-top:32px;">Unbooked Slots</h2>
     <table class="admin-table" style="background: #fffbe9;">
         <thead>
@@ -80,4 +80,6 @@
             {% endfor %}
         </tbody>
     </table>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn" style="margin-top:18px;">← Back to Dashboard</a>
 </div>
+{% endblock %}
