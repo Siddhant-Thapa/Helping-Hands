@@ -53,7 +53,7 @@ def login():
             if user.is_admin_user():
                 return redirect(url_for('admin.dashboard'))
             else:
-                return redirect(url_for('slot_bp.dashboard'))
+                return redirect(url_for('user_dashboard_bp.dashboard'))
         else:
             flash("Invalid credentials.", "danger")
 

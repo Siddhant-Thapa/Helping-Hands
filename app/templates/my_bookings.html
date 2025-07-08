@@ -4,43 +4,44 @@
     <h2>📖 My Bookings</h2>
 
     {% if not upcoming and not past %}
-        <p>You have no bookings yet.</p>
+    <p>You have no bookings yet.</p>
     {% endif %}
 
     {% if upcoming %}
-        <h3 style="color: #065f46;">🔜 Upcoming Bookings</h3>
-        <ul class="booking-list">
+    <h3 style="color: #065f46;">🔜 Upcoming Bookings</h3>
+    <ul class="booking-list">
         {% for slot in upcoming %}
-            <li class="booking upcoming">
-                <strong>{{ slot.date.strftime("%Y-%m-%d") }}</strong> —
-                {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }}<br>
-                {{ slot.branch.name }} — {{ slot.section.name }}
+        <li class="booking upcoming">
+            <strong>{{ slot.date.strftime("%Y-%m-%d") }}</strong> —
+            {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }}<br>
+            {{ slot.branch.name }} — {{ slot.section.name }}
 
-                <form id="cancel-form-{{ slot.booking_id }}" method="POST"
-                    action="{{ url_for('slot_bp.cancel_booking', booking_id=slot.booking_id) }}" style="display:none;">
-                </form>
-                <button type="button" class="cancel-btn" onclick="confirmCancel('{{ slot.booking_id }}')">Cancel</button>
-            </li>
+            <form id="cancel-form-{{ slot.booking_id }}" method="POST"
+                action="{{ url_for('my_bookings_bp.cancel_booking', booking_id=slot.booking_id) }}"
+                style="display:none;">
+            </form>
+            <button type="button" class="cancel-btn" onclick="confirmCancel('{{ slot.booking_id }}')">Cancel</button>
+        </li>
         {% endfor %}
-        </ul>
+    </ul>
     {% endif %}
 
     {% if past %}
-        <h3 style="color: #991b1b;">🕓 Past Bookings</h3>
-        <ul class="booking-list">
+    <h3 style="color: #991b1b;">🕓 Past Bookings</h3>
+    <ul class="booking-list">
         {% for slot in past %}
-            <li class="booking past">
-                <strong>{{ slot.date.strftime("%Y-%m-%d") }}</strong> —
-                {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }}<br>
-                {{ slot.branch.name }} — {{ slot.section.name }}<br>
-                {% if not slot.feedback_given %}
-                    <button onclick="openFeedback('{{ slot.booking_id }}')" class="feedback-btn">Submit Feedback</button>
-                {% else %}
-                    <p>✅ Feedback submitted</p>
-                {% endif %}
-            </li>
+        <li class="booking past">
+            <strong>{{ slot.date.strftime("%Y-%m-%d") }}</strong> —
+            {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }}<br>
+            {{ slot.branch.name }} — {{ slot.section.name }}<br>
+            {% if not slot.feedback_given %}
+            <button onclick="openFeedback('{{ slot.booking_id }}')" class="feedback-btn">Submit Feedback</button>
+            {% else %}
+            <p>✅ Feedback submitted</p>
+            {% endif %}
+        </li>
         {% endfor %}
-        </ul>
+    </ul>
     {% endif %}
 </div>
 

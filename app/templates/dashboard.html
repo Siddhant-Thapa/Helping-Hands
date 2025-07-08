@@ -14,11 +14,10 @@
 
     <div class="dashboard-actions">
         <a href="{{ url_for('auth_bp.profile') }}">Update Profile</a>
-        <a href="{{ url_for('slot_bp.book_slot') }}">Book a Slot</a>
-        <a href="{{ url_for('slot_bp.my_bookings') }}">📖 My Bookings</a>
-        <a href="{{ url_for('slot_bp.calendar_view') }}">📅 View Calendar</a>
+        <a href="{{ url_for('book_my_slot_bp.book_slot') }}">Book a Slot</a>
+        <a href="{{ url_for('my_bookings_bp.my_bookings') }}">📖 My Bookings</a>
+        <a href="{{ url_for('calendar_view_bp.calendar_view') }}">📅 View Calendar</a>
         <a href="{{ url_for('auth_bp.logout') }}">Logout</a>
-
     </div>
 </div>
 {% endblock %}

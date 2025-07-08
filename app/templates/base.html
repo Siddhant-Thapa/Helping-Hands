@@ -24,7 +24,7 @@
             {% if current_user.is_admin or (current_user.role and current_user.role.lower() == 'admin') %}
             <li><a href="{{ url_for('admin.dashboard') }}">Admin Panel</a></li>
             {% else %}
-            <li><a href="{{ url_for('slot_bp.dashboard') }}">User Dashboard</a></li>
+            <li><a href="{{ url_for('user_dashboard_bp.dashboard') }}">User Dashboard</a></li>
             {% endif %}
             <li><a href="{{ url_for('auth_bp.logout') }}">Logout</a></li>
             {% else %}

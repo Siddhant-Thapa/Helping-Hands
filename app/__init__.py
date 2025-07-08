@@ -38,8 +38,20 @@ def create_app():
     from app.routes.auth import auth_bp
     app.register_blueprint(auth_bp)
 
-    from app.routes.slot import slot_bp
-    app.register_blueprint(slot_bp)
+    # from app.routes.slot import slot_bp
+    # app.register_blueprint(slot_bp)
+
+    from app.routes.user_dashboard import user_dashboard_bp
+    app.register_blueprint(user_dashboard_bp)
+
+    from app.routes.book_my_slot import book_my_slot_bp
+    app.register_blueprint(book_my_slot_bp)
+
+    from app.routes.my_bookings import my_bookings_bp
+    app.register_blueprint(my_bookings_bp)
+
+    from app.routes.calendar_view import calendar_view_bp
+    app.register_blueprint(calendar_view_bp)
 
     from app.routes.feedback import feedback_bp
     app.register_blueprint(feedback_bp)
@@ -56,8 +68,6 @@ def create_app():
     from app.routes.manage_sections import manage_sections_bp
     app.register_blueprint(manage_sections_bp)
 
-    # from app.routes.manage_bookings import manage_bookings_bp
-    # app.register_blueprint(manage_bookings_bp)
     from app.routes.manage_bookings import manage_bookings_bp
     app.register_blueprint(manage_bookings_bp)
 
