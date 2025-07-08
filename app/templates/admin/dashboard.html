@@ -27,6 +27,13 @@
                                         <a href="{{ url_for('manage_feedback_bp.feedback_dashboard') }}">⭐ Feedback &
                                             Ratings</a>
                                         </li>
+                                        <li{% if request.path.startswith('/admin/sale-days') %} class="active" {% endif
+                                            %}>
+                                            <a href="{{ url_for('manage_sale_days_bp.sale_days') }}">📅 Manage Sale
+                                                Days</a>
+                                            </li>
+
+
 
 
 

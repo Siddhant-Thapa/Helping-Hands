@@ -77,6 +77,9 @@ def create_app():
     from app.routes.manage_feedback import manage_feedback_bp
     app.register_blueprint(manage_feedback_bp)
 
+    from app.routes.manage_sale_days import manage_sale_days_bp
+    app.register_blueprint(manage_sale_days_bp)
+
     # ----------- ERROR HANDLERS START -----------
 
     @app.errorhandler(404)

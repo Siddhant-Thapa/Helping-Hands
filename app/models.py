@@ -77,3 +77,17 @@ class Feedback(db.Model):
     rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text)
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class SaleDay(db.Model):
+    __tablename__ = 'sale_days'
+    id = db.Column(db.Integer, primary_key=True)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    description = db.Column(db.String(255))
+
+# class SaleDay(db.Model):
+#     __tablename__ = 'sale_days'
+#     id = db.Column(db.Integer, primary_key=True)
+#     date = db.Column(db.Date, unique=True, nullable=False)
+#     description = db.Column(db.String(255))

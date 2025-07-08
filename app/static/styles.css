@@ -440,3 +440,82 @@ nav ul li {
     margin-bottom: 8px;
     border-radius: 6px;
 }
+
+.admin-panel-container,
+.form-container,
+.dashboard-container {
+    background: #fff;
+    padding: 2rem;
+    max-width: 750px;
+    margin: 2rem auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+}
+
+.sale-form-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    /* or omit this line if you always want them in one row */
+}
+
+.sale-form-row input,
+.sale-form-row button,
+.sale-form-row label {
+    margin: 0;
+}
+
+.sale-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fafbfc;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.sale-table th,
+.sale-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.sale-table th {
+    background: #f3f4f6;
+    font-weight: 600;
+}
+
+.sale-table tr:last-child td {
+    border-bottom: none;
+}
+
+.primary-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.primary-btn:hover {
+    background: #1e40af;
+}
+
+.danger-btn {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.danger-btn:hover {
+    background: #991b1b;
+}

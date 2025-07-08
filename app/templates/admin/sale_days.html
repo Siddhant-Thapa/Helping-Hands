@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-panel-container">
+    <h2 style="margin-bottom: 1.5rem;">Manage Sale Days <span style="font-size:1rem;color:#888;"></span>
+    </h2>
+    <form method="POST" action="{{ url_for('manage_sale_days_bp.add_sale_day') }}" class="sale-form-row">
+        <label>Start Date:</label>
+        <input type="date" name="start_date" required>
+        <label>End Date:</label>
+        <input type="date" name="end_date" required>
+        <input type="text" name="description" placeholder="Description (optional)" style="min-width:200px;">
+        <button type="submit" class="primary-btn">Add Sale Day</button>
+    </form>
+
+
+    <table class="sale-table">
+        <thead>
+            <tr>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Description</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sd in sale_days %}
+            <tr>
+                <td>{{ sd.start_date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ sd.end_date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ sd.description }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('manage_sale_days_bp.delete_sale_day', id=sd.id) }}"
+                        style="display:inline;">
+                        <button type="submit" class="danger-btn"
+                            onclick="return confirm('Are you sure?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" style="text-align:center;color:#888;">No sale days set.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
