@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import time, date, datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.models import db, Slot, Booking, Branch, Section
 from flask_login import login_required, current_user
@@ -12,22 +12,24 @@ SLOT_TIME_RANGES = {
     "12-8": (time(12, 0), time(20, 0)),
 }
 
-BANGALORE_BRANCHES = [
-    "Indiranagar", "Whitefield", "Malleshwaram", "Koramangala", "HSR Layout"
-]
-
-STORE_SECTIONS = [
-    "Electronics", "Clothing", "Shoes", "Furniture", "Grocery (Non-Veg)", "Veg"
-]
-
 
 @book_my_slot_bp.route("/book-slot", methods=["GET", "POST"])
 @login_required
 def book_slot():
     user_id = current_user.id
 
+    # Always fetch live branches/sections from the database
+    branches = Branch.query.all()
+    sections = Section.query.all()
+
     if request.method == "POST":
-        date = request.form["date"]
+        date_selected = request.form["date"]
+        try:
+            slot_date = datetime.strptime(date_selected, "%Y-%m-%d").date()
+        except ValueError:
+            flash("Invalid date format.", "danger")
+            return redirect(url_for("book_my_slot_bp.book_slot"))
+
         slot_range = request.form["slot_range"]
         branch = request.form["branch"]
         section = request.form["section"]
@@ -45,7 +47,7 @@ def book_slot():
             return redirect(url_for("book_my_slot_bp.book_slot"))
 
         slot = Slot.query.filter_by(
-            date=date,
+            date=slot_date,
             start_time=start_time,
             end_time=end_time,
             branch_id=branch_obj.id,
@@ -63,7 +65,7 @@ def book_slot():
                 flash("Slot booked successfully!", "success")
         else:
             slot = Slot(
-                date=date,
+                date=slot_date,
                 start_time=start_time,
                 end_time=end_time,
                 branch_id=branch_obj.id,
@@ -78,7 +80,15 @@ def book_slot():
 
         return redirect(url_for("book_my_slot_bp.book_slot"))
 
-    all_slots = Slot.query.all()
-    return render_template("book_slot.html", slots=all_slots,
-                           branches=BANGALORE_BRANCHES,
-                           sections=STORE_SECTIONS)
+    today = date.today()
+    today_str = today.strftime("%Y-%m-%d")
+    all_slots = Slot.query.filter(Slot.date >= today).options(
+        db.joinedload(Slot.bookings)).all()
+    return render_template(
+        "book_slot.html",
+        slots=all_slots,
+        branches=branches,
+        sections=sections,
+        current_user_id=current_user.id,
+        today_str=today_str
+    )

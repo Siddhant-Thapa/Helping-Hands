@@ -4,7 +4,7 @@
     <h2>Book a Slot</h2>
     <form method="POST">
         <label>Date:</label>
-        <input type="date" name="date" required>
+        <input type="date" name="date" required min="{{ today_str }}">
 
         <label>Time Slot:</label>
         <select name="slot_range" required>
@@ -17,14 +17,14 @@
         <label>Branch:</label>
         <select name="branch" required>
             {% for b in branches %}
-            <option value="{{ b }}">{{ b }}</option>
+            <option value="{{ b.name }}">{{ b.name }}</option>
             {% endfor %}
         </select>
 
         <label>Section:</label>
         <select name="section" required>
             {% for s in sections %}
-            <option value="{{ s }}">{{ s }}</option>
+            <option value="{{ s.name }}">{{ s.name }}</option>
             {% endfor %}
         </select>
 
@@ -38,12 +38,29 @@
     <h2>All Booking Slots</h2>
     <ul style="list-style-type: none; padding: 0;">
         {% for slot in slots %}
-        <li class="slot-item {% if slot.booked_by %}booked{% else %}available{% endif %}">
-            {{ slot.date }} | {{ slot.time }} | {{ slot.branch.name }} | {{ slot.section.name }}
-            {% if slot.booked_by %}
-            🔒 Booked
+        {% set booking = slot.bookings[0] if slot.bookings|length > 0 else None %}
+        <li class="slot-item
+                {% if booking %}
+                    {% if booking.user_id == current_user_id %}
+                        my-booking
+                    {% else %}
+                        other-booking
+                    {% endif %}
+                {% else %}
+                    available
+                {% endif %}">
+            {{ slot.date }} |
+            {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }} |
+            {{ slot.branch.name }} | {{ slot.section.name }}
+
+            {% if booking %}
+            {% if booking.user_id == current_user_id %}
+            <b>✔ Booked by you</b>
             {% else %}
-            ✅ Available
+            <b>🔒 Booked</b>
+            {% endif %}
+            {% else %}
+            <b>✅ Available</b>
             {% endif %}
         </li>
         {% endfor %}

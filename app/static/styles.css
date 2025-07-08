@@ -417,3 +417,26 @@ nav ul li {
     font-size: 1.07rem;
     font-weight: 500;
 }
+
+.my-booking {
+    background: #d1fae5;
+    color: #166534;
+    font-weight: bold;
+}
+
+.other-booking {
+    background: #fee2e2;
+    color: #991b1b;
+    font-weight: bold;
+}
+
+.available {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.slot-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+}
