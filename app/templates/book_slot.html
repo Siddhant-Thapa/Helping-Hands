@@ -3,8 +3,20 @@
 <div class="form-container">
     <h2>Book a Slot</h2>
     <form method="POST">
-        <label>Date:</label>
-        <input type="date" name="date" required min="{{ today_str }}">
+        <small>
+            {% if sale_days and all_sale_dates %}
+            <i>Only the following dates are bookable:</i>
+            {% for sd in sale_days %}
+            {{ sd.start_date.strftime('%d %b %Y') }} to {{ sd.end_date.strftime('%d %b %Y') }}
+            {% if not loop.last %}, {% endif %}
+            {% endfor %}
+            {% else %}
+            You can book any upcoming date.
+            {% endif %}
+        </small>
+        <p><label>Date:</label></p>
+        <input type="text" id="sale-date-picker" name="date" required placeholder="Select date">
+
 
         <label>Time Slot:</label>
         <select name="slot_range" required>
@@ -66,4 +78,27 @@
         {% endfor %}
     </ul>
 </div>
+
+<!-- Add flatpickr assets just before your closing </body> or at the end of this file -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    {% if sale_days and all_sale_dates %}
+    var saleDates = [
+        {% for date_str in all_sale_dates %}
+    "{{ date_str }}"{% if not loop.last %}, {% endif %}
+    {% endfor %}
+        ];
+    flatpickr("#sale-date-picker", {
+        dateFormat: "Y-m-d",
+        enable: saleDates,
+    });
+    {% else %}
+    flatpickr("#sale-date-picker", {
+        dateFormat: "Y-m-d",
+        minDate: "{{ today_str }}"
+    });
+    {% endif %}
+</script>
+
 {% endblock %}

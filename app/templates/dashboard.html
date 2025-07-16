@@ -1,23 +1,227 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="dashboard-container">
-    {% if user.photo %}
-    <img src="{{ url_for('static', filename='uploads/' + user.photo) }}" width="100" height="100"
-        style="border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
-    {% else %}
-    <img src="{{ url_for('static', filename='default_user.png') }}" width="100" height="100"
-        style="border-radius: 50%; object-fit: cover; margin-bottom: 10px;">
-    {% endif %}
+<!DOCTYPE html>
+<html lang="en">
 
-    <h2>Welcome, {{ user.name }}!</h2>
-    <p>Designation: <strong>{{ user.role }}</strong></p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <div class="dashboard-actions">
-        <a href="{{ url_for('auth_bp.profile') }}">Update Profile</a>
-        <a href="{{ url_for('book_my_slot_bp.book_slot') }}">Book a Slot</a>
-        <a href="{{ url_for('my_bookings_bp.my_bookings') }}">📖 My Bookings</a>
-        <a href="{{ url_for('calendar_view_bp.calendar_view') }}">📅 View Calendar</a>
-        <a href="{{ url_for('auth_bp.logout') }}">Logout</a>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border: 4px solid #fff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .profile-image:hover {
+            transform: scale(1.05);
+        }
+
+        h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .designation {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+            padding: 8px 16px;
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .dashboard-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .dashboard-actions a {
+            text-decoration: none;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-actions a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .dashboard-actions a:hover::before {
+            left: 100%;
+        }
+
+        .dashboard-actions a:nth-child(1) {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .dashboard-actions a:nth-child(2) {
+            background: linear-gradient(45deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .dashboard-actions a:nth-child(3) {
+            background: linear-gradient(45deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .dashboard-actions a:nth-child(4) {
+            background: linear-gradient(45deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .dashboard-actions a:nth-child(5) {
+            background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+        }
+
+        .dashboard-actions a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .dashboard-actions a:active {
+            transform: translateY(-1px);
+        }
+
+        .icon {
+            font-size: 18px;
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-container {
+                padding: 30px 20px;
+            }
+
+            .dashboard-actions {
+                grid-template-columns: 1fr;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+        }
+
+        /* Floating particles animation */
+        .dashboard-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: float 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-20px, -20px) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        {% if user.photo %}
+        <img src="{{ url_for('static', filename='uploads/' + user.photo) }}" class="profile-image"
+            alt="Profile Picture">
+        {% else %}
+        <img src="{{ url_for('static', filename='default_user.png') }}" class="profile-image"
+            alt="Default Profile Picture">
+        {% endif %}
+
+        <h2>Welcome, {{ user.name }}!</h2>
+        <p class="designation">{{ user.role }}</p>
+
+        <div class="dashboard-actions">
+            <a href="{{ url_for('auth_bp.profile') }}">
+                <span class="icon">👤</span>
+                Update Profile
+            </a>
+            <a href="{{ url_for('book_my_slot_bp.book_slot') }}">
+                <span class="icon">📅</span>
+                Book a Slot
+            </a>
+            <a href="{{ url_for('my_bookings_bp.my_bookings') }}">
+                <span class="icon">📖</span>
+                My Bookings
+            </a>
+            <a href="{{ url_for('calendar_view_bp.calendar_view') }}">
+                <span class="icon">📅</span>
+                View Calendar
+            </a>
+            <a href="{{ url_for('auth_bp.logout') }}">
+                <span class="icon">🚪</span>
+                Logout
+            </a>
+        </div>
     </div>
-</div>
-{% endblock %}
+</body>
+
+</html>
