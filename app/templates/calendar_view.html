@@ -29,9 +29,12 @@
                     <form method="POST" action="{{ url_for('calendar_view_bp.book_from_calendar') }}"
                         style="display:inline;">
                         <input type="hidden" name="date" value="{{ slot.date.strftime('%Y-%m-%d') }}">
-                        <input type="hidden" name="slot_range" value="{% for k, v in SLOT_TIME_RANGES.items() %}
+                        <!-- <input type="hidden" name="slot_range" value="{% for k, v in SLOT_TIME_RANGES.items() %}
                           {% if v[0] == slot.start_time and v[1] == slot.end_time %}{{ k }}{% endif %}
-                          {% endfor %}">
+                          {% endfor %}"> -->
+                        <input type="hidden" name="slot_range"
+                            value="{{ get_slot_range_key(slot.start_time, slot.end_time) }}">
+
                         <input type="hidden" name="branch" value="{{ slot.branch.name }}">
                         <input type="hidden" name="section" value="{{ slot.section.name }}">
                         <button type="submit" class="book-btn">Book</button>
