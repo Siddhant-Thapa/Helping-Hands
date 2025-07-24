@@ -3,9 +3,24 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f3f4f6;
-    /* default for all pages */
+    background-image: url('/static/uploads/loginpage BgImg.jpeg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
     min-height: 100vh;
+}
+
+/* Optional: dark overlay for better contrast */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.15);
+    /* Adjust opacity as needed */
+    z-index: -1;
 }
 
 /* Flash message styling */
@@ -73,33 +88,31 @@ body {
 }
 
 /* Primary & outline buttons */
+.home-buttons .btn,
+.home-buttons .btn-outline,
 .btn,
 .btn-outline {
-    text-decoration: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: bold;
-    transition: all 0.3s ease;
+    text-decoration: none !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 8px !important;
+    font-weight: bold !important;
+    transition: all 0.3s ease !important;
+    display: inline-block !important;
+    text-align: center !important;
+    min-width: 120px !important;
+    border: 2px solid #2563eb !important;
+    color: #2563eb !important;
+    background-color: transparent !important;
 }
 
-.btn {
-    background-color: #2563eb;
-    color: white;
-}
-
-.btn:hover {
-    background-color: #1e40af;
-}
-
-.btn-outline {
-    border: 2px solid #2563eb;
-    color: #2563eb;
-    background-color: transparent;
-}
-
+/* Make both buttons have outline style like Register */
+.home-buttons .btn:hover,
+.home-buttons .btn-outline:hover,
+.btn:hover,
 .btn-outline:hover {
-    background-color: #2563eb;
-    color: white;
+    background-color: #2563eb !important;
+    color: white !important;
+    text-decoration: none !important;
 }
 
 /* Home page background override */
@@ -118,6 +131,37 @@ body {
     width: 100%;
     max-width: 400px;
     margin: 5vh auto;
+    position: relative;
+    z-index: 10;
+}
+
+/* Ensure form elements are properly styled */
+.form-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container label {
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-container input[type="email"],
+.form-container input[type="password"] {
+    margin-bottom: 15px;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-container input[type="email"]:focus,
+.form-container input[type="password"]:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 h2 {
@@ -140,10 +184,19 @@ input[type="submit"] {
     color: white;
     border: none;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    margin-top: 10px;
 }
 
 input[type="submit"]:hover {
-    background-color: #1eaf42;
+    background-color: #1e40af;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
 .form-footer a {
@@ -518,4 +571,33 @@ nav ul li {
 
 .danger-btn:hover {
     background: #991b1b;
+}
+
+.dashboard-home-bg {
+    background-image: url('/static/uploads/HmPg HH Bckgrd.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-home-bg::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.25);
+    /* subtle dark overlay for contrast */
+    z-index: 0;
+    border-radius: 18px;
+}
+
+.dashboard-home-bg>* {
+    position: relative;
+    z-index: 1;
 }

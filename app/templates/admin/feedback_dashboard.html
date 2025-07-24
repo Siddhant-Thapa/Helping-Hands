@@ -1,67 +1,510 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="admin-table-container">
-    <h2>Feedback & Ratings</h2>
-    <form method="get" action="{{ url_for('manage_feedback_bp.feedback_dashboard') }}" style="margin-bottom: 18px;">
-        <input type="text" name="user" placeholder="Search User..." value="{{ request.args.get('user', '') }}">
-        <select name="branch">
-            <option value="">All Branches</option>
-            {% for branch in all_branches %}
-            <option value="{{ branch.name }}" {% if request.args.get('branch')==branch.name %}selected{% endif %}>{{
-                branch.name }}</option>
-            {% endfor %}
-        </select>
-        <select name="section">
-            <option value="">All Sections</option>
-            {% for section in all_sections %}
-            <option value="{{ section.name }}" {% if request.args.get('section')==section.name %}selected{% endif %}>{{
-                section.name }}</option>
-            {% endfor %}
-        </select>
-        <input type="date" name="date" value="{{ request.args.get('date', '') }}">
-        <select name="min_rating">
-            <option value="">All Ratings</option>
-            <option value="2" {% if request.args.get('min_rating')=='2' %}selected{% endif %}>≤ 2 Stars</option>
-            <option value="3" {% if request.args.get('min_rating')=='3' %}selected{% endif %}>≤ 3 Stars</option>
-        </select>
-        <button type="submit">Filter</button>
-    </form>
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>User</th>
-                <th>Branch</th>
-                <th>Section</th>
-                <th>Date</th>
-                <th>Rating</th>
-                <th>Comment</th>
-                <th>Submitted At</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for feedback in feedbacks %}
-            <tr {% if feedback.rating <=2 %}style="background: #ffeaea;" {% endif %}>
-                <td>{{ feedback.user.name }}</td>
-                <td>{{ feedback.booking.slot.branch.name }}</td>
-                <td>{{ feedback.booking.slot.section.name }}</td>
-                <td>{{ feedback.booking.slot.date }}</td>
-                <td>
-                    {% for i in range(feedback.rating) %}
-                    <span style="color:gold;">&#9733;</span>
-                    {% endfor %}
-                    ({{ feedback.rating }})
-                </td>
-                <td>{{ feedback.comment or '' }}</td>
-                <td>{{ feedback.submitted_at.strftime('%Y-%m-%d %H:%M') }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="7" style="text-align:center;">No feedback found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <a href="{{ url_for('admin.dashboard') }}" class="btn" style="margin-top:18px;">← Back to Dashboard</a>
+<!DOCTYPE html>
+<html lang="en">
 
-</div>
-{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback & Ratings - Helping Hands Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(rgba(245, 247, 250, 0.9), rgba(245, 247, 250, 0.9)),
+            url("{{ url_for('static', filename='uploads/HmPg HH Bckgrd.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-details h4 {
+            margin-bottom: 2px;
+            font-size: 0.9rem;
+        }
+
+        .admin-details p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #2a5298;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar h3 {
+            color: #1e3c72;
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #4a5568;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .sidebar a:hover {
+            background: #f7fafc;
+            color: #2a5298;
+            transform: translateX(5px);
+        }
+
+        .sidebar li.active a {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        }
+
+        .admin-table-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #2a5298;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .sidebar {
+                position: static;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='helping_logo.png') }}" alt="Helping Hands Logo"
+                    style="height: 38px; width: 38px; object-fit: contain; margin-right: 8px;">
+                <span>Helping Hands Admin</span>
+            </div>
+            <div class="admin-info">
+                <div class="admin-details">
+                    <h4>{{ current_user.name }}</h4>
+                    <p>Administrator</p>
+                </div>
+                <a href="{{ url_for('auth_bp.logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h3>🛠️ Admin Panel</h3>
+            <ul>
+                <li>
+                    <a href="{{ url_for('admin.dashboard', tab='home') }}">🏠 Dashboard</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('manage_bookings_bp.bookings_dashboard') }}">📖 View Bookings</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('admin.dashboard', tab='slots') }}">🗓️ Manage Slots</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('manage_users_bp.users_dashboard') }}">👥 Manage Users</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('manage_user_approvals_bp.user_approvals') }}">✅ User Approvals</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('manage_branches_bp.branches_dashboard') }}">🏬 Manage Branches</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('manage_sections_bp.sections_dashboard') }}">🏷️ Manage Sections</a>
+                </li>
+                <li class="active">
+                    <a href="{{ url_for('manage_feedback_bp.feedback_dashboard') }}">⭐ Feedback & Ratings</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('manage_sale_days_bp.sale_days') }}">📅 Manage Sale Days</a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="admin-table-container">
+            <style>
+                .feedback-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 2rem;
+                    padding-bottom: 1rem;
+                    border-bottom: 2px solid #e2e8f0;
+                }
+
+                .feedback-title {
+                    color: #1e3c72;
+                    font-size: 1.8rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                .filter-section {
+                    background: #f8fafc;
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    margin-bottom: 2rem;
+                    border: 1px solid #e2e8f0;
+                }
+
+                .filter-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                    gap: 1rem;
+                    margin-bottom: 1rem;
+                }
+
+                .filter-input,
+                .filter-select {
+                    padding: 10px 12px;
+                    border: 2px solid #e2e8f0;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    transition: all 0.3s ease;
+                }
+
+                .filter-input:focus,
+                .filter-select:focus {
+                    outline: none;
+                    border-color: #4facfe;
+                    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+                }
+
+                .filter-btn {
+                    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                    color: white;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+
+                .filter-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+                }
+
+                .feedback-section {
+                    background: white;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    border: 1px solid #e2e8f0;
+                }
+
+                .section-header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 1rem 1.5rem;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .section-title {
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                .feedback-count {
+                    background: rgba(255, 255, 255, 0.2);
+                    padding: 4px 12px;
+                    border-radius: 15px;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                }
+
+                .enhanced-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    background: white;
+                }
+
+                .enhanced-table th {
+                    background: #f8fafc;
+                    color: #2d3748;
+                    padding: 12px;
+                    text-align: left;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+
+                .enhanced-table td {
+                    padding: 12px;
+                    border-bottom: 1px solid #f1f5f9;
+                    vertical-align: middle;
+                }
+
+                .enhanced-table tr:hover {
+                    background: #f8fafc;
+                }
+
+                .enhanced-table tr.low-rating {
+                    background: #fef2f2;
+                }
+
+                .enhanced-table tr.low-rating:hover {
+                    background: #fee2e2;
+                }
+
+                .user-name {
+                    font-weight: 600;
+                    color: #2d3748;
+                }
+
+                .location-info {
+                    color: #4a5568;
+                    font-size: 0.9rem;
+                }
+
+                .date-info {
+                    color: #718096;
+                    font-size: 0.9rem;
+                }
+
+                .rating-display {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                .stars {
+                    color: #f6ad55;
+                    font-size: 1.1rem;
+                }
+
+                .rating-number {
+                    font-weight: 600;
+                    color: #2d3748;
+                }
+
+                .comment-text {
+                    max-width: 200px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    color: #4a5568;
+                    font-style: italic;
+                }
+
+                .submitted-time {
+                    color: #718096;
+                    font-size: 0.85rem;
+                }
+
+                .empty-message {
+                    text-align: center;
+                    padding: 2rem;
+                    color: #718096;
+                    font-style: italic;
+                }
+            </style>
+
+            <div class="feedback-header">
+                <h2 class="feedback-title">⭐ Feedback & Ratings Management</h2>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <h3 style="margin-bottom: 1rem; color: #2d3748; font-size: 1.1rem;">🔍 Filter Feedback</h3>
+                <form method="get" action="{{ url_for('manage_feedback_bp.feedback_dashboard') }}">
+                    <div class="filter-grid">
+                        <input type="text" name="user" class="filter-input" placeholder="Search User..."
+                            value="{{ request.args.get('user', '') }}">
+                        <select name="branch" class="filter-select">
+                            <option value="">All Branches</option>
+                            {% for branch in all_branches %}
+                            <option value="{{ branch.name }}" {% if request.args.get('branch')==branch.name %}selected{%
+                                endif %}>{{ branch.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="section" class="filter-select">
+                            <option value="">All Sections</option>
+                            {% for section in all_sections %}
+                            <option value="{{ section.name }}" {% if request.args.get('section')==section.name
+                                %}selected{% endif %}>{{ section.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="date" name="date" class="filter-input" value="{{ request.args.get('date', '') }}">
+                        <select name="min_rating" class="filter-select">
+                            <option value="">All Ratings</option>
+                            <option value="2" {% if request.args.get('min_rating')=='2' %}selected{% endif %}>≤ 2 Stars
+                            </option>
+                            <option value="3" {% if request.args.get('min_rating')=='3' %}selected{% endif %}>≤ 3 Stars
+                            </option>
+                        </select>
+                        <button type="submit" class="filter-btn">🔍 Apply Filters</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Feedback Section -->
+            <div class="feedback-section">
+                <div class="section-header">
+                    <h3 class="section-title">💬 Customer Feedback</h3>
+                    <span class="feedback-count">{{ feedbacks|length }} reviews</span>
+                </div>
+
+                {% if feedbacks %}
+                <table class="enhanced-table">
+                    <thead>
+                        <tr>
+                            <th>👤 User</th>
+                            <th>📍 Location</th>
+                            <th>📅 Date</th>
+                            <th>⭐ Rating</th>
+                            <th>💬 Comment</th>
+                            <th>🕒 Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for feedback in feedbacks %}
+                        <tr {% if feedback.rating <=2 %}class="low-rating" {% endif %}>
+                            <td class="user-name">{{ feedback.user.name }}</td>
+                            <td class="location-info">
+                                <strong>{{ feedback.booking.slot.branch.name }}</strong><br>
+                                <small>{{ feedback.booking.slot.section.name }}</small>
+                            </td>
+                            <td class="date-info">{{ feedback.booking.slot.date.strftime('%d %b %Y') if
+                                feedback.booking.slot.date.strftime else feedback.booking.slot.date }}</td>
+                            <td>
+                                <div class="rating-display">
+                                    <span class="stars">
+                                        {% for i in range(feedback.rating) %}★{% endfor %}
+                                        {% for i in range(5 - feedback.rating) %}☆{% endfor %}
+                                    </span>
+                                    <span class="rating-number">({{ feedback.rating }}/5)</span>
+                                </div>
+                            </td>
+                            <td class="comment-text" title="{{ feedback.comment or 'No comment provided' }}">
+                                {{ feedback.comment or 'No comment provided' }}
+                            </td>
+                            <td class="submitted-time">{{ feedback.submitted_at.strftime('%d %b %Y %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-message">
+                    ⭐ No feedback found matching your criteria
+                </div>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn" style="margin-top:18px;">← Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+
+</html>

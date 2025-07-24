@@ -7,6 +7,8 @@ from flask import render_template, request, redirect, flash, url_for
 
 migrate = Migrate()
 
+# Define the App Factory Function
+
 
 def create_app():
     app = Flask(__name__)
@@ -79,6 +81,9 @@ def create_app():
 
     from app.routes.manage_sale_days import manage_sale_days_bp
     app.register_blueprint(manage_sale_days_bp)
+
+    from app.routes.manage_user_approvals import manage_user_approvals_bp
+    app.register_blueprint(manage_user_approvals_bp)
 
     # ----------- ERROR HANDLERS START -----------
 

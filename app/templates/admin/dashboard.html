@@ -1,51 +1,292 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="admin-dashboard-layout">
-    <aside class="sidebar">
-        <h3>Admin Panel</h3>
-        <ul>
-            <li{% if tab=='home' or not tab %} class="active" {% endif %}>
-                <a href="{{ url_for('admin.dashboard', tab='home') }}">🏠 Dashboard</a>
-                </li>
-                <li{% if request.path.startswith('/admin/bookings') %} class="active" {% endif %}>
-                    <a href="{{ url_for('manage_bookings_bp.bookings_dashboard') }}">📖 View Bookings</a>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Helping Hands</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(rgba(245, 247, 250, 0.9), rgba(245, 247, 250, 0.9)),
+            url("{{ url_for('static', filename='uploads/HmPg HH Bckgrd.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .admin-details h4 {
+            margin-bottom: 2px;
+            font-size: 0.9rem;
+        }
+
+        .admin-details p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #2a5298;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar h3 {
+            color: #1e3c72;
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #4a5568;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .sidebar a:hover {
+            background: #f7fafc;
+            color: #2a5298;
+            transform: translateX(5px);
+        }
+
+        .sidebar li.active a {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        }
+
+        /* Content Area */
+        .admin-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #2a5298;
+            min-height: 600px;
+        }
+
+
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .admin-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0 1rem;
+            }
+
+            .sidebar,
+            .admin-content {
+                padding: 1.5rem;
+            }
+
+            .admin-welcome h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='helping_logo.png') }}" alt="Helping Hands Logo"
+                    style="height: 38px; width: 38px; object-fit: contain; margin-right: 8px;">
+                <span>Helping Hands Admin</span>
+            </div>
+            <div class="admin-info">
+                <div class="admin-details">
+                    <h4>{{ current_user.name }}</h4>
+                    <p>Administrator</p>
+                </div>
+                <!-- {% if current_user.photo %}
+                <!-- <img src="{{ url_for('static', filename='uploads/' + current_user.photo) }}" class="admin-avatar"
+                    alt="Admin Picture"> -->
+                <!-- {% else %}
+                <img src="{{ url_for('static', filename='default_user.png') }}" class="admin-avatar"
+                    alt="Default Admin Picture">
+                {% endif %} -->
+                <a href="{{ url_for('auth_bp.logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h3>🛠️ Admin Panel</h3>
+            <ul>
+                <li{% if tab=='home' or not tab %} class="active" {% endif %}>
+                    <a href="{{ url_for('admin.dashboard', tab='home') }}">🏠 Dashboard</a>
                     </li>
-                    <li{% if request.path.startswith('/admin/slots') %} class="active" {% endif %}>
-                        <a href="{{ url_for('admin.dashboard', tab='slots') }}">🗓️ Manage Slots</a>
+                    <li{% if request.path.startswith('/admin/bookings') %} class="active" {% endif %}>
+                        <a href="{{ url_for('manage_bookings_bp.bookings_dashboard') }}">📖 View Bookings</a>
                         </li>
-                        <li{% if request.path.startswith('/admin/users') %} class="active" {% endif %}>
-                            <a href="{{ url_for('manage_users_bp.users_dashboard') }}">👥 Manage Users</a>
+                        <li{% if request.path.startswith('/admin/slots') %} class="active" {% endif %}>
+                            <a href="{{ url_for('admin.dashboard', tab='slots') }}">🗓️ Manage Slots</a>
                             </li>
-                            <li{% if request.path.startswith('/admin/branches') %} class="active" {% endif %}>
-                                <a href="{{ url_for('manage_branches_bp.branches_dashboard') }}">🏬 Manage Branches</a>
+                            <li{% if request.path.startswith('/admin/users') %} class="active" {% endif %}>
+                                <a href="{{ url_for('manage_users_bp.users_dashboard') }}">👥 Manage Users</a>
                                 </li>
-                                <li{% if request.path.startswith('/admin/sections') %} class="active" {% endif %}>
-                                    <a href="{{ url_for('manage_sections_bp.sections_dashboard') }}">🏷️ Manage
-                                        Sections</a>
+                                <li{% if request.path.startswith('/admin/user-approvals') %} class="active" {% endif %}>
+                                    <a href="{{ url_for('manage_user_approvals_bp.user_approvals') }}">✅ User
+                                        Approvals</a>
                                     </li>
-                                    <li{% if request.path.startswith('/admin/feedback') %} class="active" {% endif %}>
-                                        <a href="{{ url_for('manage_feedback_bp.feedback_dashboard') }}">⭐ Feedback &
-                                            Ratings</a>
+                                    <li{% if request.path.startswith('/admin/branches') %} class="active" {% endif %}>
+                                        <a href="{{ url_for('manage_branches_bp.branches_dashboard') }}">🏬 Manage
+                                            Branches</a>
                                         </li>
-                                        <li{% if request.path.startswith('/admin/sale-days') %} class="active" {% endif
+                                        <li{% if request.path.startswith('/admin/sections') %} class="active" {% endif
                                             %}>
-                                            <a href="{{ url_for('manage_sale_days_bp.sale_days') }}">📅 Manage Sale
-                                                Days</a>
+                                            <a href="{{ url_for('manage_sections_bp.sections_dashboard') }}">🏷️ Manage
+                                                Sections</a>
                                             </li>
+                                            <li{% if request.path.startswith('/admin/feedback') %} class="active" {%
+                                                endif %}>
+                                                <a href="{{ url_for('manage_feedback_bp.feedback_dashboard') }}">⭐
+                                                    Feedback
+                                                    & Ratings</a>
+                                                </li>
+                                                <li{% if request.path.startswith('/admin/sale-days') %} class="active"
+                                                    {% endif %}>
+                                                    <a href="{{ url_for('manage_sale_days_bp.sale_days') }}">📅 Manage
+                                                        Sale
+                                                        Days</a>
+                                                    </li>
+            </ul>
+        </aside>
 
+        <!-- Main Content -->
+        <main class="admin-content">
+            {% if tab == 'home' or not tab %}
+            {% include 'admin/partials/dashboard_home.html' %}
+            {% elif tab == 'slots' %}
+            {% include 'admin/partials/slots_table.html' %}
+            {% endif %}
+        </main>
+    </div>
+</body>
 
-
-
-
-
-        </ul>
-    </aside>
-    <main class="admin-content">
-        {% if tab == 'home' or not tab %}
-        {% include 'admin/partials/dashboard_home.html' %}
-        {% elif tab == 'slots' %}
-        {% include 'admin/partials/slots_table.html' %}
-        {% endif %}
-    </main>
-</div>
-{% endblock %}
+</html>

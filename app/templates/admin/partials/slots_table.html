@@ -1,136 +1,440 @@
-<div class="admin-table-container">
-    <h2>Manage Slots</h2>
-    <a href="{{ url_for('manage_slots_bp.create_slot') }}" class="btn" style="margin-bottom: 18px;">+ Add Slot</a>
+<style>
+    .slots-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
 
-    <!-- Today's Slots -->
-    <h3>Today</h3>
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Branch</th>
-                <th>Section</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for slot in slots_today %}
-            <tr>
-                <td>{{ slot.date }}</td>
-                <td>{{ slot.start_time }}</td>
-                <td>{{ slot.end_time }}</td>
-                <td>{{ slot.branch.name }}</td>
-                <td>{{ slot.section.name }}</td>
-                <td>
-                    {% if slot.bookings %}<b style="color:#991b1b;">Booked</b>{% else %}<b
-                        style="color:#059669;">Unbooked</b>{% endif %}
-                </td>
-                <td>
-                    <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}">Edit</a>
-                    {% if not slot.bookings %}
-                    <form action="{{ url_for('manage_slots_bp.delete_slot', slot_id=slot.id) }}" method="POST"
-                        style="display:inline;">
-                        <button type="submit" onclick="return confirm('Delete this slot?');">Delete</button>
-                    </form>
-                    {% endif %}
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="7" style="text-align:center;">No slots for today.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    .slots-title {
+        color: #1e3c72;
+        font-size: 1.8rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 
-    <!-- Upcoming Slots -->
-    <h3>Upcoming</h3>
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Branch</th>
-                <th>Section</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for slot in slots_upcoming %}
-            <tr>
-                <td>{{ slot.date }}</td>
-                <td>{{ slot.start_time }}</td>
-                <td>{{ slot.end_time }}</td>
-                <td>{{ slot.branch.name }}</td>
-                <td>{{ slot.section.name }}</td>
-                <td>
-                    {% if slot.bookings %}<b style="color:#991b1b;">Booked</b>{% else %}<b
-                        style="color:#059669;">Unbooked</b>{% endif %}
-                </td>
-                <td>
-                    <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}">Edit</a>
-                    {% if not slot.bookings %}
-                    <form action="{{ url_for('manage_slots_bp.delete_slot', slot_id=slot.id) }}" method="POST"
-                        style="display:inline;">
-                        <button type="submit" onclick="return confirm('Delete this slot?');">Delete</button>
-                    </form>
-                    {% endif %}
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="7" style="text-align:center;">No upcoming slots.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    .create-slot-btn {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 
-    <!-- Past Slots -->
-    <h3>Past</h3>
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Branch</th>
-                <th>Section</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for slot in slots_past %}
-            <tr>
-                <td>{{ slot.date }}</td>
-                <td>{{ slot.start_time }}</td>
-                <td>{{ slot.end_time }}</td>
-                <td>{{ slot.branch.name }}</td>
-                <td>{{ slot.section.name }}</td>
-                <td>
-                    {% if slot.bookings %}<b style="color:#991b1b;">Booked</b>{% else %}<b
-                        style="color:#059669;">Unbooked</b>{% endif %}
-                </td>
-                <td>
-                    <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}">Edit</a>
-                    {% if not slot.bookings %}
-                    <form action="{{ url_for('manage_slots_bp.delete_slot', slot_id=slot.id) }}" method="POST"
-                        style="display:inline;">
-                        <button type="submit" onclick="return confirm('Delete this slot?');">Delete</button>
-                    </form>
-                    {% endif %}
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="7" style="text-align:center;">No past slots.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    .create-slot-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .slots-section {
+        margin-bottom: 2rem;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .slot-count {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .enhanced-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    .enhanced-table th {
+        background: #f8fafc;
+        color: #2d3748;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .enhanced-table td {
+        padding: 12px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .enhanced-table tr:hover {
+        background: #f8fafc;
+    }
+
+    .enhanced-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .date-cell {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .time-cell {
+        color: #4a5568;
+        font-size: 0.9rem;
+    }
+
+    .location-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .branch-name {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .section-name {
+        font-size: 0.85rem;
+        color: #718096;
+    }
+
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .status-available {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+
+    .status-booked {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+
+    .status-completed {
+        background: #bee3f8;
+        color: #2c5282;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .edit-btn {
+        background: #4299e1;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .edit-btn:hover {
+        background: #3182ce;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .delete-btn {
+        background: #e53e3e;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .delete-btn:hover {
+        background: #c53030;
+        transform: translateY(-1px);
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 2rem;
+        color: #718096;
+        font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+        .slots-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .enhanced-table {
+            font-size: 0.85rem;
+        }
+
+        .enhanced-table th,
+        .enhanced-table td {
+            padding: 8px 6px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+    }
+</style>
+
+<div>
+    <!-- Header Section -->
+    <div class="slots-header">
+        <h2 class="slots-title">
+            🗓️ Slot Management System
+        </h2>
+        <a href="{{ url_for('manage_slots_bp.create_slot') }}" class="create-slot-btn">
+            ➕ Create New Slot
+        </a>
+    </div>
+
+    <!-- Today's Slots Section -->
+    <div class="slots-section">
+        <div class="section-header">
+            <h3 class="section-title">📅 Today's Slots</h3>
+            <span class="slot-count">{{ slots_today|length }} slots</span>
+        </div>
+
+        {% if slots_today %}
+        <table class="enhanced-table">
+            <thead>
+                <tr>
+                    <th>📅 Date</th>
+                    <th>⏰ Time</th>
+                    <th>📍 Location</th>
+                    <th>📊 Status</th>
+                    <th>⚙️ Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots_today %}
+                <tr>
+                    <td class="date-cell">{{ slot.date.strftime('%d %b %Y') if slot.date.strftime else slot.date }}</td>
+                    <td class="time-cell">
+                        {{ slot.start_time.strftime('%I:%M %p') if slot.start_time.strftime else slot.start_time }} -
+                        {{ slot.end_time.strftime('%I:%M %p') if slot.end_time.strftime else slot.end_time }}
+                    </td>
+                    <td class="location-cell">
+                        <span class="branch-name">{{ slot.branch.name }}</span>
+                        <span class="section-name">{{ slot.section.name }}</span>
+                    </td>
+                    <td>
+                        {% if slot.bookings %}
+                        <span class="status-badge status-booked">🔒 Booked</span>
+                        {% else %}
+                        <span class="status-badge status-available">✅ Available</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}" class="edit-btn">
+                                ✏️ Edit
+                            </a>
+                            {% if not slot.bookings %}
+                            <form action="{{ url_for('manage_slots_bp.delete_slot', slot_id=slot.id) }}" method="POST"
+                                style="display:inline;">
+                                <button type="submit" class="delete-btn"
+                                    onclick="return confirm('⚠️ Are you sure you want to delete this slot?');">
+                                    🗑️ Delete
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-message">
+            📅 No slots scheduled for today
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Upcoming Slots Section -->
+    <div class="slots-section">
+        <div class="section-header">
+            <h3 class="section-title">🔮 Upcoming Slots</h3>
+            <span class="slot-count">{{ slots_upcoming|length }} slots</span>
+        </div>
+
+        {% if slots_upcoming %}
+        <table class="enhanced-table">
+            <thead>
+                <tr>
+                    <th>📅 Date</th>
+                    <th>⏰ Time</th>
+                    <th>📍 Location</th>
+                    <th>📊 Status</th>
+                    <th>⚙️ Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots_upcoming %}
+                <tr>
+                    <td class="date-cell">{{ slot.date.strftime('%d %b %Y') if slot.date.strftime else slot.date }}</td>
+                    <td class="time-cell">
+                        {{ slot.start_time.strftime('%I:%M %p') if slot.start_time.strftime else slot.start_time }} -
+                        {{ slot.end_time.strftime('%I:%M %p') if slot.end_time.strftime else slot.end_time }}
+                    </td>
+                    <td class="location-cell">
+                        <span class="branch-name">{{ slot.branch.name }}</span>
+                        <span class="section-name">{{ slot.section.name }}</span>
+                    </td>
+                    <td>
+                        {% if slot.bookings %}
+                        <span class="status-badge status-booked">🔒 Booked</span>
+                        {% else %}
+                        <span class="status-badge status-available">✅ Available</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}" class="edit-btn">
+                                ✏️ Edit
+                            </a>
+                            {% if not slot.bookings %}
+                            <form action="{{ url_for('manage_slots_bp.delete_slot', slot_id=slot.id) }}" method="POST"
+                                style="display:inline;">
+                                <button type="submit" class="delete-btn"
+                                    onclick="return confirm('⚠️ Are you sure you want to delete this slot?');">
+                                    🗑️ Delete
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-message">
+            🔮 No upcoming slots scheduled
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Past Slots Section -->
+    <div class="slots-section">
+        <div class="section-header">
+            <h3 class="section-title">📚 Past Slots</h3>
+            <span class="slot-count">{{ slots_past|length }} slots</span>
+        </div>
+
+        {% if slots_past %}
+        <table class="enhanced-table">
+            <thead>
+                <tr>
+                    <th>📅 Date</th>
+                    <th>⏰ Time</th>
+                    <th>📍 Location</th>
+                    <th>📊 Final Status</th>
+                    <th>⚙️ Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots_past %}
+                <tr>
+                    <td class="date-cell">{{ slot.date.strftime('%d %b %Y') if slot.date.strftime else slot.date }}</td>
+                    <td class="time-cell">
+                        {{ slot.start_time.strftime('%I:%M %p') if slot.start_time.strftime else slot.start_time }} -
+                        {{ slot.end_time.strftime('%I:%M %p') if slot.end_time.strftime else slot.end_time }}
+                    </td>
+                    <td class="location-cell">
+                        <span class="branch-name">{{ slot.branch.name }}</span>
+                        <span class="section-name">{{ slot.section.name }}</span>
+                    </td>
+                    <td>
+                        {% if slot.bookings %}
+                        <span class="status-badge status-completed">✅ Completed</span>
+                        {% else %}
+                        <span class="status-badge" style="background: #fbb6ce; color: #97266d;">❌ Unused</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('manage_slots_bp.edit_slot', slot_id=slot.id) }}" class="edit-btn">
+                                👁️ View
+                            </a>
+                            {% if not slot.bookings %}
+                            <form action="{{ url_for('manage_slots_bp.delete_slot', slot_id=slot.id) }}" method="POST"
+                                style="display:inline;">
+                                <button type="submit" class="delete-btn"
+                                    onclick="return confirm('⚠️ Are you sure you want to delete this past slot?');">
+                                    🗑️ Delete
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-message">
+            📚 No past slots found
+        </div>
+        {% endif %}
+    </div>
 </div>

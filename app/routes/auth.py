@@ -29,11 +29,20 @@ def register():
             flash("Email already registered.", "danger")
             return redirect(url_for('auth_bp.register'))
 
-        user = User(name=name, email=email, password_hash=password, role=role)
+        # Create user with pending approval status
+        user = User(
+            name=name,
+            email=email,
+            password_hash=password,
+            role=role,
+            is_approved=False,
+            approval_status='pending'
+        )
         db.session.add(user)
         db.session.commit()
-        flash("Registered successfully!", "success")
-        return redirect(url_for('auth_bp.login'))
+
+        flash("Registration successful! Your account is pending admin approval. You will be notified once approved and can then login.", "info")
+        return render_template('registration_pending.html', user_name=name)
 
     return render_template('register.html')
 
@@ -47,6 +56,18 @@ def login():
 
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password_hash, password):
+            # Check if user is approved (admins bypass approval check)
+            if not user.is_admin_user() and user.approval_status != 'approved':
+                if user.approval_status == 'pending':
+                    flash(
+                        "Your account is pending admin approval. Please wait for approval before logging in.", "warning")
+                elif user.approval_status == 'rejected':
+                    flash(
+                        "Your account has been rejected by the administrator. Please contact support.", "danger")
+                else:
+                    flash("Your account is not approved for login.", "danger")
+                return render_template('login.html')
+
             if role_requested == 'admin':
                 # Admin login requested
                 if user.is_admin_user():
@@ -108,6 +129,31 @@ def profile():
     return render_template("profile.html", user=user)
 
 
+@auth_bp.route('/remove-profile-photo', methods=['POST'])
+@login_required
+def remove_profile_photo():
+    user = current_user
+
+    if user.photo:
+        # Delete the physical file
+        try:
+            file_path = os.path.join(
+                current_app.config['UPLOAD_FOLDER'], user.photo)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"Error deleting file: {e}")
+
+        # Remove from database
+        user.photo = None
+        db.session.commit()
+        flash("Profile picture removed successfully!", "success")
+    else:
+        flash("No profile picture to remove.", "info")
+
+    return redirect(url_for('auth_bp.profile'))
+
+
 @auth_bp.route('/logout')
 @login_required  # --- Use Flask-Login's login_required ---
 def logout():
@@ -115,3 +161,8 @@ def logout():
     logout_user()
     flash("Logged out successfully.", "info")
     return redirect(url_for('auth_bp.home'))
+
+
+@auth_bp.route('/about')
+def about():
+    return render_template('about.html')

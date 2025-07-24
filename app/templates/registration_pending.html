@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Pending - Helping Hands</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .pending-container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #f59e0b;
+            margin-bottom: 1.5rem;
+        }
+
+        .pending-title {
+            font-size: 2rem;
+            color: #1e3c72;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .pending-message {
+            font-size: 1.1rem;
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .info-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-text {
+            color: #92400e;
+            font-size: 0.95rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .steps {
+            text-align: left;
+            margin: 2rem 0;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .step-number {
+            background: #4facfe;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .step-text {
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .pending-container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .pending-title {
+                font-size: 1.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pending-container">
+        <div class="success-icon">⏳</div>
+
+        <h1 class="pending-title">Registration Submitted!</h1>
+
+        <p class="pending-message">
+            Thank you, <strong>{{ user_name }}</strong>! Your registration has been successfully submitted.
+        </p>
+
+        <div class="info-box">
+            <div class="info-title">⚠️ Approval Required</div>
+            <div class="info-text">
+                Your account is currently pending admin approval. You will be able to login once an administrator
+                reviews and approves your registration.
+            </div>
+        </div>
+
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-text">Your registration details have been submitted</div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-text">Admin will review your application</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-text">You'll receive approval notification</div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-text">Login with your credentials once approved</div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="{{ url_for('auth_bp.login') }}" class="btn btn-primary">
+                Try Login Later
+            </a>
+            <a href="{{ url_for('auth_bp.home') }}" class="btn btn-secondary">
+                Back to Home
+            </a>
+        </div>
+
+        <p style="margin-top: 2rem; font-size: 0.85rem; color: #718096;">
+            Need help? Contact the administrator for assistance.
+        </p>
+    </div>
+</body>
+
+</html>

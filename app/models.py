@@ -14,6 +14,10 @@ class User(db.Model, UserMixin):
     photo = db.Column(db.String(255))
     is_admin = db.Column(db.Boolean, default=False)
     role = db.Column(db.String(50), nullable=False)
+    is_approved = db.Column(db.Boolean, default=False)
+    # pending, approved, rejected
+    approval_status = db.Column(db.String(20), default='pending')
+    registered_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     bookings = db.relationship('Booking', backref='user', lazy=True)
     feedbacks = db.relationship('Feedback', backref='user', lazy=True)
@@ -21,6 +25,16 @@ class User(db.Model, UserMixin):
     def is_admin_user(self):
         # You can use either field or both for flexibility
         return self.is_admin or self.role.lower() == 'admin'
+
+    def is_active(self):
+        # Override Flask-Login's is_active to check approval status
+        return self.is_approved and self.approval_status == 'approved'
+
+    def get_registration_date(self):
+        """Get formatted registration date or default message"""
+        if self.registered_at:
+            return self.registered_at.strftime('%d %b %Y %H:%M')
+        return 'Not available'
 
 
 class Branch(db.Model):
@@ -85,9 +99,3 @@ class SaleDay(db.Model):
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
     description = db.Column(db.String(255))
-
-# class SaleDay(db.Model):
-#     __tablename__ = 'sale_days'
-#     id = db.Column(db.Integer, primary_key=True)
-#     date = db.Column(db.Date, unique=True, nullable=False)
-#     description = db.Column(db.String(255))

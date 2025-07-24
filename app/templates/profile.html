@@ -125,6 +125,79 @@
             font-size: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             border: 2px solid white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-badge:hover {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+        }
+
+        /* Dropdown menu for profile actions */
+        .profile-actions {
+            position: absolute;
+            top: 100%;
+            right: calc(50% - 100px);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e2e8f0;
+            min-width: 150px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .profile-actions.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-actions::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            right: 20px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid white;
+        }
+
+        .profile-action-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border-bottom: 1px solid #f7fafc;
+            color: #4a5568;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .profile-action-item:last-child {
+            border-bottom: none;
+        }
+
+        .profile-action-item:hover {
+            background-color: #f7fafc;
+            color: #2d3748;
+        }
+
+        .profile-action-item:first-child:hover {
+            background-color: #f0fff4;
+            color: #22543d;
+        }
+
+        .profile-action-item:last-child:hover {
+            background-color: #fed7d7;
+            color: #742a2a;
         }
 
         .field-group {
@@ -336,8 +409,9 @@
     <header class="header">
         <div class="header-content">
             <div class="logo">
-                <span>🏢</span>
-                <span>Company Portal</span>
+                <img src="{{ url_for('static', filename='helping_logo.png') }}" alt="Helping Hands Logo"
+                    style="height: 38px; width: 38px; object-fit: contain; margin-right: 8px;">
+                <span>Helping Hands</span>
             </div>
             <a href="{{ url_for('auth_bp.dashboard') }}" class="back-btn">← Back to Dashboard</a>
         </div>
@@ -361,12 +435,24 @@
             <div class="profile-image-container">
                 {% if user.photo %}
                 <img src="{{ url_for('static', filename='uploads/' + user.photo) }}" class="profile-image"
-                    alt="Profile Picture">
+                    alt="Profile Picture" id="profile-image">
                 {% else %}
                 <img src="{{ url_for('static', filename='default_user.png') }}" class="profile-image"
-                    alt="Default Profile Picture">
+                    alt="Default Profile Picture" id="profile-image">
                 {% endif %}
-                <div class="profile-badge">✏️</div>
+                <div class="profile-badge" id="edit-badge">✏️</div>
+
+                <!-- Profile Actions Dropdown -->
+                <div class="profile-actions" id="profile-actions">
+                    <div class="profile-action-item" id="update-image">
+                        <span>📷</span> Update Image
+                    </div>
+                    {% if user.photo %}
+                    <div class="profile-action-item" id="remove-image">
+                        <span>🗑️</span> Remove Image
+                    </div>
+                    {% endif %}
+                </div>
             </div>
 
             <!-- Profile Form -->
@@ -421,11 +507,73 @@
             if (fileName) {
                 label.innerHTML = `<span style="color: #48bb78;">✓</span> Selected: ${fileName}`;
                 label.classList.add('file-selected');
+
+                // Preview the selected image
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        document.getElementById('profile-image').src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
             } else {
                 label.innerHTML = '📁 Choose Profile Picture';
                 label.classList.remove('file-selected');
             }
         });
+
+        // Profile badge click functionality
+        const editBadge = document.getElementById('edit-badge');
+        const profileActions = document.getElementById('profile-actions');
+        const updateImageBtn = document.getElementById('update-image');
+        const removeImageBtn = document.getElementById('remove-image');
+        const photoUpload = document.getElementById('photo-upload');
+
+        // Toggle dropdown when clicking the edit badge
+        editBadge.addEventListener('click', function (e) {
+            e.stopPropagation();
+            profileActions.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!editBadge.contains(e.target) && !profileActions.contains(e.target)) {
+                profileActions.classList.remove('show');
+            }
+        });
+
+        // Update image action
+        updateImageBtn.addEventListener('click', function () {
+            photoUpload.click();
+            profileActions.classList.remove('show');
+        });
+
+        // Remove image action
+        if (removeImageBtn) {
+            removeImageBtn.addEventListener('click', function () {
+                if (confirm('Are you sure you want to remove your profile picture?')) {
+                    // Create a form to submit the removal
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ url_for("auth_bp.remove_profile_photo") }}';
+
+                    // Add CSRF token if needed
+                    const csrfToken = document.querySelector('input[name="csrf_token"]');
+                    if (csrfToken) {
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = 'csrf_token';
+                        csrfInput.value = csrfToken.value;
+                        form.appendChild(csrfInput);
+                    }
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+                profileActions.classList.remove('show');
+            });
+        }
     </script>
 </body>
 

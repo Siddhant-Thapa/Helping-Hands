@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Helping Hands</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v={{ range(1, 10000) | random }}">
     <!-- Flatpickr (smart datepicker) assets -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -29,6 +29,10 @@
     {% if not hide_navbar %}
     <nav>
         <ul>
+            <!-- <li><a href="{{ url_for('auth_bp.home') }}">Home</a></li> -->
+
+            <li><a href="{{ url_for('auth_bp.about') }}">About</a></li> <!-- ✅ fix -->
+
             {% if current_user.is_authenticated %}
             {% if current_user.is_admin or (current_user.role and current_user.role.lower() == 'admin') %}
             <li><a href="{{ url_for('admin.dashboard') }}">Admin Panel</a></li>

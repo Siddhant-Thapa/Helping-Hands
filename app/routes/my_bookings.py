@@ -49,8 +49,3 @@ def cancel_booking(booking_id):
         flash("You are not authorized to cancel this booking.", "danger")
 
     return redirect(url_for("my_bookings_bp.my_bookings"))
-
-# OPTIONAL: If you have a feedback submission route, you can add it here too!
-# @my_bookings_bp.route("/submit-feedback/<int:booking_id>", methods=["POST"])
-# def submit_feedback(...):
-#     ...

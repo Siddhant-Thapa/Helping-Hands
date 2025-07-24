@@ -14,7 +14,12 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
+            background: linear-gradient(rgba(245, 247, 250, 0.9), rgba(245, 247, 250, 0.9)),
+            url("{{ url_for('static', filename='uploads/HmPg HH Bckgrd.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
             min-height: 100vh;
             color: #333;
         }
@@ -255,7 +260,8 @@
     <header class="header">
         <div class="header-content">
             <div class="logo">
-                <span>🏢</span>
+                <img src="{{ url_for('static', filename='helping_logo.png') }}" alt="Helping Hands Logo"
+                    style="height: 38px; width: 38px; object-fit: contain; margin-right: 8px;">
                 <span>Helping Hands</span>
             </div>
             <div class="user-info">
