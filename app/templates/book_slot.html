@@ -1,104 +1,492 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="form-container">
-    <h2>Book a Slot</h2>
-    <form method="POST">
-        <small>
-            {% if sale_days and all_sale_dates %}
-            <i>Only the following dates are bookable:</i>
-            {% for sd in sale_days %}
-            {{ sd.start_date.strftime('%d %b %Y') }} to {{ sd.end_date.strftime('%d %b %Y') }}
-            {% if not loop.last %}, {% endif %}
-            {% endfor %}
-            {% else %}
-            You can book any upcoming date.
-            {% endif %}
-        </small>
-        <p><label>Date:</label></p>
-        <input type="text" id="sale-date-picker" name="date" required placeholder="Select date">
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Slot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        <label>Time Slot:</label>
-        <select name="slot_range" required>
-            <option value="9-5">9 AM - 5 PM</option>
-            <option value="10-6">10 AM - 6 PM</option>
-            <option value="11-7">11 AM - 7 PM</option>
-            <option value="12-8">12 PM - 8 PM</option>
-        </select>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+        }
 
-        <label>Branch:</label>
-        <select name="branch" required>
-            {% for b in branches %}
-            <option value="{{ b.name }}">{{ b.name }}</option>
-            {% endfor %}
-        </select>
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-        <label>Section:</label>
-        <select name="section" required>
-            {% for s in sections %}
-            <option value="{{ s.name }}">{{ s.name }}</option>
-            {% endfor %}
-        </select>
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        <input type="submit" value="Book Slot">
-    </form>
-</div>
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-<hr style="margin: 3rem 0;">
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
 
-<div class="form-container">
-    <h2>All Booking Slots</h2>
-    <ul style="list-style-type: none; padding: 0;">
-        {% for slot in slots %}
-        {% set booking = slot.bookings[0] if slot.bookings|length > 0 else None %}
-        <li class="slot-item
-                {% if booking %}
-                    {% if booking.user_id == current_user_id %}
-                        my-booking
-                    {% else %}
-                        other-booking
-                    {% endif %}
-                {% else %}
-                    available
-                {% endif %}">
-            {{ slot.date }} |
-            {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }} |
-            {{ slot.branch.name }} | {{ slot.section.name }}
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
 
-            {% if booking %}
-            {% if booking.user_id == current_user_id %}
-            <b>✔ Booked by you</b>
-            {% else %}
-            <b>🔒 Booked</b>
-            {% endif %}
-            {% else %}
-            <b>✅ Available</b>
-            {% endif %}
-        </li>
+        /* Main Container */
+        .main-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #2a5298;
+        }
+
+        h2 {
+            color: #1e3c72;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .booking-info {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            color: #4a5568;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .booking-info i {
+            font-style: italic;
+            color: #718096;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #ffffff;
+            color: #2d3748;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        input[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            margin: 3rem 0;
+        }
+
+        /* Slots Display */
+        .slots-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #2a5298;
+        }
+
+        .slots-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .slot-item {
+            padding: 1.25rem;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slot-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .slot-item.available {
+            background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+            border-color: #48bb78;
+            color: #22543d;
+        }
+
+        .slot-item.my-booking {
+            background: linear-gradient(135deg, #e6fffa 0%, #ffffff 100%);
+            border-color: #38b2ac;
+            color: #234e52;
+        }
+
+        .slot-item.other-booking {
+            background: linear-gradient(135deg, #fed7d7 0%, #ffffff 100%);
+            border-color: #e53e3e;
+            color: #742a2a;
+        }
+
+        .slot-info {
+            flex: 1;
+        }
+
+        .slot-details {
+            font-size: 0.95rem;
+            color: inherit;
+            margin-bottom: 0.25rem;
+        }
+
+        .slot-status {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Flash Messages */
+        .flash {
+            padding: 12px 16px;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .flash.success {
+            background-color: #f0fff4;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .flash.danger {
+            background-color: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .flash.info {
+            background-color: #ebf8ff;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .main-container {
+                padding: 0 1rem;
+                margin: 1rem auto;
+            }
+
+            .form-container,
+            .slots-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .slot-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .slot-status {
+                align-self: flex-end;
+            }
+        }
+
+        /* Flatpickr Custom Styling */
+        .flatpickr-calendar {
+            border-radius: 12px !important;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15) !important;
+            border: none !important;
+        }
+
+        .flatpickr-day.selected {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+            border-color: #4facfe !important;
+        }
+
+        .flatpickr-day:hover {
+            background: #f7fafc !important;
+            border-color: #4facfe !important;
+        }
+    </style>
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span>🏢</span>
+                <span>Company Portal</span>
+            </div>
+            <a href="{{ url_for('auth_bp.dashboard') }}" class="back-btn">← Back to Dashboard</a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
         {% endfor %}
-    </ul>
-</div>
+        {% endif %}
+        {% endwith %}
 
-<!-- Add flatpickr assets just before your closing </body> or at the end of this file -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script>
-    {% if sale_days and all_sale_dates %}
-    var saleDates = [
-        {% for date_str in all_sale_dates %}
-    "{{ date_str }}"{% if not loop.last %}, {% endif %}
-    {% endfor %}
+        <!-- Booking Form -->
+        <div class="form-container">
+            <h2>📅 Book a Slot</h2>
+
+            <div class="booking-info">
+                {% if sale_days and all_sale_dates %}
+                <i>Only the following dates are bookable:</i><br>
+                {% for sd in sale_days %}
+                <strong>{{ sd.start_date.strftime('%d %b %Y') }}</strong> to <strong>{{ sd.end_date.strftime('%d %b %Y')
+                    }}</strong>
+                {% if not loop.last %}, {% endif %}
+                {% endfor %}
+                {% else %}
+                You can book any upcoming date.
+                {% endif %}
+            </div>
+
+            <form method="POST">
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label for="sale-date-picker">Select Date:</label>
+                        <input type="text" id="sale-date-picker" name="date" required placeholder="Choose a date">
+                    </div>
+
+                    <div class="field-group">
+                        <label for="slot_range">Time Slot:</label>
+                        <select name="slot_range" id="slot_range" required>
+                            <option value="9-5">9:00 AM - 5:00 PM</option>
+                            <option value="10-6">10:00 AM - 6:00 PM</option>
+                            <option value="11-7">11:00 AM - 7:00 PM</option>
+                            <option value="12-8">12:00 PM - 8:00 PM</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="branch">Branch Location:</label>
+                        <select name="branch" id="branch" required>
+                            {% for b in branches %}
+                            <option value="{{ b.name }}">{{ b.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="section">Section/Department:</label>
+                        <select name="section" id="section" required>
+                            {% for s in sections %}
+                            <option value="{{ s.name }}">{{ s.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <input type="submit" value="Book This Slot">
+            </form>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider"></div>
+
+        <!-- All Booking Slots -->
+        <div class="slots-container">
+            <h2>📋 All Booking Slots</h2>
+
+            {% if slots %}
+            <ul class="slots-list">
+                {% for slot in slots %}
+                {% set booking = slot.bookings[0] if slot.bookings|length > 0 else None %}
+                <li class="slot-item
+                    {% if booking %}
+                        {% if booking.user_id == current_user_id %}
+                            my-booking
+                        {% else %}
+                            other-booking
+                        {% endif %}
+                    {% else %}
+                        available
+                    {% endif %}">
+
+                    <div class="slot-info">
+                        <div class="slot-details">
+                            <strong>{{ slot.date }}</strong> |
+                            {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }} |
+                            {{ slot.branch.name }} | {{ slot.section.name }}
+                        </div>
+                    </div>
+
+                    <div class="slot-status">
+                        {% if booking %}
+                        {% if booking.user_id == current_user_id %}
+                        <span>✅ Booked by you</span>
+                        {% else %}
+                        <span>🔒 Unavailable</span>
+                        {% endif %}
+                        {% else %}
+                        <span>✅ Available</span>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div style="text-align: center; color: #718096; padding: 2rem;">
+                <p>📅 No booking slots available at the moment.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Check back later for new slots.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        {% if sale_days and all_sale_dates %}
+        var saleDates = [
+            {% for date_str in all_sale_dates %}
+        "{{ date_str }}"{% if not loop.last %}, {% endif %}
+        {% endfor %}
         ];
-    flatpickr("#sale-date-picker", {
-        dateFormat: "Y-m-d",
-        enable: saleDates,
-    });
-    {% else %}
-    flatpickr("#sale-date-picker", {
-        dateFormat: "Y-m-d",
-        minDate: "{{ today_str }}"
-    });
-    {% endif %}
-</script>
+        flatpickr("#sale-date-picker", {
+            dateFormat: "Y-m-d",
+            enable: saleDates,
+            disableMobile: true,
+            clickOpens: true
+        });
+        {% else %}
+        flatpickr("#sale-date-picker", {
+            dateFormat: "Y-m-d",
+            minDate: "{{ today_str }}",
+            disableMobile: true,
+            clickOpens: true
+        });
+        {% endif %}
+    </script>
+</body>
 
-{% endblock %}
+</html>

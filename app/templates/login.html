@@ -10,14 +10,42 @@
         <label>Password:</label>
         <input type="password" name="password" required>
 
+        <label>Login as:</label>
+        <div class="radio-group">
+            <input type="radio" id="user" name="role" value="user" checked>
+            <label for="user">User</label>
+
+            <input type="radio" id="admin" name="role" value="admin">
+            <label for="admin">Admin</label>
+        </div>
+
         <input type="submit" value="Login">
     </form>
 
     <div class="form-footer">
         <p style="text-align: center; margin: 10px 0 0;">
-            Don’t have an account?
+            Don't have an account?
             <a href="{{ url_for('auth_bp.register') }}">Register</a>
         </p>
     </div>
 </div>
+
+<style>
+    .radio-group {
+        margin: 10px 0;
+        display: flex;
+        gap: 15px;
+    }
+
+    .radio-group input[type="radio"] {
+        margin-right: 5px;
+    }
+
+    .radio-group label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-weight: normal;
+    }
+</style>
 {% endblock %}

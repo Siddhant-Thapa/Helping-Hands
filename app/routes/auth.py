@@ -1,5 +1,5 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, session
 import os
 from werkzeug.utils import secure_filename
 from app.models import db, User
@@ -43,16 +43,26 @@ def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
+        role_requested = request.form.get('role')  # 'user' or 'admin'
 
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password_hash, password):
-            # --- Use Flask-Login to log the user in ---
-            login_user(user)
-            flash("Welcome " + user.name, "success")
-            # If you want, you can redirect admins to /admin and users to /dashboard
-            if user.is_admin_user():
-                return redirect(url_for('admin.dashboard'))
+            if role_requested == 'admin':
+                # Admin login requested
+                if user.is_admin_user():
+                    login_user(user)
+                    session['login_role'] = 'admin'  # Track how they logged in
+                    flash("Welcome Admin " + user.name, "success")
+                    return redirect(url_for('admin.dashboard'))
+                else:
+                    flash(
+                        "Access denied. You don't have administrator privileges.", "danger")
+                    return render_template('login.html')
             else:
+                # Regular user login
+                login_user(user)
+                session['login_role'] = 'user'  # Track how they logged in
+                flash("Welcome " + user.name, "success")
                 return redirect(url_for('user_dashboard_bp.dashboard'))
         else:
             flash("Invalid credentials.", "danger")

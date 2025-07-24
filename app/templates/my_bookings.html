@@ -1,123 +1,507 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="form-container">
-    <h2>📖 My Bookings</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-    {% if not upcoming and not past %}
-    <p>You have no bookings yet.</p>
-    {% endif %}
-
-    {% if upcoming %}
-    <h3 style="color: #065f46;">🔜 Upcoming Bookings</h3>
-    <ul class="booking-list">
-        {% for slot in upcoming %}
-        <li class="booking upcoming">
-            <strong>{{ slot.date.strftime("%Y-%m-%d") }}</strong> —
-            {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }}<br>
-            {{ slot.branch.name }} — {{ slot.section.name }}
-
-            <form id="cancel-form-{{ slot.booking_id }}" method="POST"
-                action="{{ url_for('my_bookings_bp.cancel_booking', booking_id=slot.booking_id) }}"
-                style="display:none;">
-            </form>
-            <button type="button" class="cancel-btn" onclick="confirmCancel('{{ slot.booking_id }}')">Cancel</button>
-        </li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-
-    {% if past %}
-    <h3 style="color: #991b1b;">🕓 Past Bookings</h3>
-    <ul class="booking-list">
-        {% for slot in past %}
-        <li class="booking past">
-            <strong>{{ slot.date.strftime("%Y-%m-%d") }}</strong> —
-            {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }}<br>
-            {{ slot.branch.name }} — {{ slot.section.name }}<br>
-            {% if not slot.feedback_given %}
-            <button onclick="openFeedback('{{ slot.booking_id }}')" class="feedback-btn">Submit Feedback</button>
-            {% else %}
-            <p>✅ Feedback submitted</p>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-</div>
-
-<script>
-    function confirmCancel(bookingId) {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "Do you want to cancel this booking?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',            // Red
-            cancelButtonColor: '#16a34a',          // Green (Tailwind green-600)
-            confirmButtonText: 'Yes, cancel it',
-            cancelButtonText: 'No, keep it',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById(`cancel-form-${bookingId}`).submit();
-            }
-        });
-    }
-
-    function openFeedback(bookingId) {
-        Swal.fire({
-            title: 'Rate Your Experience',
-            html:
-                '<div class="star-rating" style="font-size: 24px; margin-bottom: 10px;">' +
-                [...Array(5)].map((_, i) =>
-                    `<i class="fa fa-star-o" data-star="${i + 1}" style="cursor:pointer; margin: 0 2px;" onclick="selectStar(this)"></i>`
-                ).join('') +
-                '</div>' +
-                '<textarea id="feedback-comment" placeholder="Optional comment..." style="width: 100%; height: 80px; margin-top: 10px; padding: 8px; border-radius: 6px; border: 1px solid #ccc;"></textarea>',
-            showCancelButton: true,
-            confirmButtonText: 'Submit',
-            preConfirm: () => {
-                const rating = document.querySelector('.fa-star.selected')?.getAttribute('data-star');
-                const comment = document.getElementById('feedback-comment').value;
-
-                if (!rating) {
-                    Swal.showValidationMessage('Please select a rating.');
-                    return false;
-                }
-
-                return fetch(`/rate/${bookingId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ rating, comment })
-                })
-                    .then(res => {
-                        if (!res.ok) throw new Error('Request failed');
-                        return res.json();
-                    })
-                    .catch(err => {
-                        Swal.showValidationMessage('Something went wrong.');
-                    });
-            }
-        }).then(result => {
-            if (result.isConfirmed) {
-                Swal.fire('Thanks!', 'Feedback submitted successfully.', 'success').then(() => location.reload());
-            }
-        });
-    }
-
-    function selectStar(el) {
-        document.querySelectorAll('.fa-star-o, .fa-star')
-            .forEach(star => star.className = 'fa fa-star-o');
-
-        const rating = el.getAttribute('data-star');
-        for (let i = 0; i < rating; i++) {
-            document.querySelectorAll('.fa')[i].className = 'fa fa-star selected';
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-    }
-</script>
 
-<!-- Font Awesome CDN for stars -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
-{% endblock %}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #2a5298;
+        }
+
+        h2 {
+            color: #1e3c72;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        h3 {
+            color: #4a5568;
+            font-size: 1.3rem;
+            margin: 2rem 0 1rem 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .upcoming-header {
+            color: #065f46;
+        }
+
+        .past-header {
+            color: #991b1b;
+        }
+
+        .no-bookings {
+            text-align: center;
+            color: #718096;
+            font-size: 1.1rem;
+            padding: 3rem 0;
+            background: #f7fafc;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e0;
+        }
+
+        .booking-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .booking {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .booking:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .booking.upcoming {
+            border-left-color: #48bb78;
+            background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+        }
+
+        .booking.past {
+            border-left-color: #e53e3e;
+            background: linear-gradient(135deg, #fed7d7 0%, #ffffff 100%);
+        }
+
+        .booking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .booking-date {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .booking-time {
+            font-size: 0.95rem;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        .booking-location {
+            font-size: 0.9rem;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .booking-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cancel-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+        }
+
+        .feedback-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        }
+
+        .feedback-submitted {
+            color: #48bb78;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Star Rating Styles */
+        .star-rating {
+            display: flex;
+            justify-content: center;
+            gap: 0.25rem;
+            margin: 1rem 0;
+        }
+
+        .star-rating i {
+            font-size: 1.5rem;
+            color: #cbd5e0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .star-rating i:hover,
+        .star-rating i.selected {
+            color: #f6ad55;
+        }
+
+        /* Flash Messages */
+        .flash {
+            padding: 12px 16px;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .flash.success {
+            background-color: #f0fff4;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .flash.danger {
+            background-color: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .flash.info {
+            background-color: #ebf8ff;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .main-container {
+                padding: 0 1rem;
+                margin: 1rem auto;
+            }
+
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.75rem;
+            }
+
+            .booking-header {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .booking-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* SweetAlert2 Custom Styles */
+        .swal2-popup {
+            border-radius: 12px !important;
+        }
+
+        .swal2-confirm {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+            border-radius: 6px !important;
+        }
+
+        .swal2-cancel {
+            background: #e2e8f0 !important;
+            color: #4a5568 !important;
+            border-radius: 6px !important;
+        }
+    </style>
+    <!-- Font Awesome CDN for stars -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span>🏢</span>
+                <span>Company Portal</span>
+            </div>
+            <a href="{{ url_for('auth_bp.dashboard') }}" class="back-btn">← Back to Dashboard</a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <div class="form-container">
+            <h2>📖 My Bookings</h2>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% if not upcoming and not past %}
+            <div class="no-bookings">
+                <p>📅 You have no bookings yet.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Start by booking your first meeting slot!</p>
+            </div>
+            {% endif %}
+
+            {% if upcoming %}
+            <h3 class="upcoming-header">🔜 Upcoming Bookings</h3>
+            <ul class="booking-list">
+                {% for slot in upcoming %}
+                <li class="booking upcoming">
+                    <div class="booking-header">
+                        <div>
+                            <div class="booking-date">{{ slot.date.strftime("%Y-%m-%d") }}</div>
+                            <div class="booking-time">{{ slot.start_time.strftime("%I:%M %p") }} - {{
+                                slot.end_time.strftime("%I:%M %p") }}</div>
+                            <div class="booking-location">{{ slot.branch.name }} — {{ slot.section.name }}</div>
+                        </div>
+                    </div>
+
+                    <div class="booking-actions">
+                        <form id="cancel-form-{{ slot.booking_id }}" method="POST"
+                            action="{{ url_for('my_bookings_bp.cancel_booking', booking_id=slot.booking_id) }}"
+                            style="display:none;">
+                        </form>
+                        <button type="button" class="cancel-btn" onclick="confirmCancel('{{ slot.booking_id }}')">Cancel
+                            Booking</button>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            {% if past %}
+            <h3 class="past-header">🕓 Past Bookings</h3>
+            <ul class="booking-list">
+                {% for slot in past %}
+                <li class="booking past">
+                    <div class="booking-header">
+                        <div>
+                            <div class="booking-date">{{ slot.date.strftime("%Y-%m-%d") }}</div>
+                            <div class="booking-time">{{ slot.start_time.strftime("%I:%M %p") }} - {{
+                                slot.end_time.strftime("%I:%M %p") }}</div>
+                            <div class="booking-location">{{ slot.branch.name }} — {{ slot.section.name }}</div>
+                        </div>
+                    </div>
+
+                    <div class="booking-actions">
+                        {% if not slot.feedback_given %}
+                        <button onclick="openFeedback('{{ slot.booking_id }}')" class="feedback-btn">Submit
+                            Feedback</button>
+                        {% else %}
+                        <div class="feedback-submitted">✅ Feedback submitted</div>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function confirmCancel(bookingId) {
+            Swal.fire({
+                title: 'Cancel Booking?',
+                text: "Are you sure you want to cancel this booking?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e53e3e',
+                cancelButtonColor: '#48bb78',
+                confirmButtonText: 'Yes, cancel it',
+                cancelButtonText: 'Keep booking',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'swal2-popup'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`cancel-form-${bookingId}`).submit();
+                }
+            });
+        }
+
+        function openFeedback(bookingId) {
+            Swal.fire({
+                title: 'Rate Your Experience',
+                html:
+                    '<div class="star-rating" style="font-size: 24px; margin-bottom: 10px;">' +
+                    [...Array(5)].map((_, i) =>
+                        `<i class="fa fa-star-o" data-star="${i + 1}" style="cursor:pointer; margin: 0 2px;" onclick="selectStar(this)"></i>`
+                    ).join('') +
+                    '</div>' +
+                    '<textarea id="feedback-comment" placeholder="Share your feedback (optional)..." style="width: 100%; height: 80px; margin-top: 10px; padding: 12px; border-radius: 8px; border: 2px solid #e2e8f0; font-family: inherit; resize: vertical;"></textarea>',
+                showCancelButton: true,
+                confirmButtonText: 'Submit Feedback',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'swal2-popup'
+                },
+                preConfirm: () => {
+                    const rating = document.querySelector('.fa-star.selected')?.getAttribute('data-star');
+                    const comment = document.getElementById('feedback-comment').value;
+
+                    if (!rating) {
+                        Swal.showValidationMessage('Please select a rating.');
+                        return false;
+                    }
+
+                    return fetch(`/rate/${bookingId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ rating, comment })
+                    })
+                        .then(res => {
+                            if (!res.ok) throw new Error('Request failed');
+                            return res.json();
+                        })
+                        .catch(err => {
+                            Swal.showValidationMessage('Something went wrong. Please try again.');
+                        });
+                }
+            }).then(result => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Thank You!',
+                        text: 'Your feedback has been submitted successfully.',
+                        icon: 'success',
+                        customClass: {
+                            popup: 'swal2-popup'
+                        }
+                    }).then(() => location.reload());
+                }
+            });
+        }
+
+        function selectStar(el) {
+            // Reset all stars
+            document.querySelectorAll('.fa-star-o, .fa-star')
+                .forEach(star => star.className = 'fa fa-star-o');
+
+            const rating = el.getAttribute('data-star');
+            // Fill stars up to the selected rating
+            for (let i = 0; i < rating; i++) {
+                document.querySelectorAll('.fa')[i].className = 'fa fa-star selected';
+            }
+        }
+    </script>
+</body>
+
+</html>

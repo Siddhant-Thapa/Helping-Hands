@@ -1,53 +1,439 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="form-container">
-    <h2>📅 Weekly Slot Availability</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <ul class="flashes">
-        {% for category, message in messages %}
-        <li class="{{ category }}">{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    {% endwith %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Calendar View</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <div class="calendar-grid">
-        {% for day in days %}
-        {% set day_str = day.strftime("%Y-%m-%d") %}
-        <div class="calendar-day">
-            <h4>{{ day.strftime("%A, %b %d") }}</h4>
-            {% if slot_map[day_str] %}
-            <ul>
-                {% for slot in slot_map[day_str] %}
-                <li class="{% if slot.bookings and slot.bookings[0].user_id == user_id %}mine{% 
-                         elif slot.bookings %}booked{% else %}available{% endif %}">
-                    {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }}
-                    – {{ slot.branch.name }} ({{ slot.section.name }})
-                    {% if not slot.bookings %}
-                    <form method="POST" action="{{ url_for('calendar_view_bp.book_from_calendar') }}"
-                        style="display:inline;">
-                        <input type="hidden" name="date" value="{{ slot.date.strftime('%Y-%m-%d') }}">
-                        <!-- <input type="hidden" name="slot_range" value="{% for k, v in SLOT_TIME_RANGES.items() %}
-                          {% if v[0] == slot.start_time and v[1] == slot.end_time %}{{ k }}{% endif %}
-                          {% endfor %}"> -->
-                        <input type="hidden" name="slot_range"
-                            value="{{ get_slot_range_key(slot.start_time, slot.end_time) }}">
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+        }
 
-                        <input type="hidden" name="branch" value="{{ slot.branch.name }}">
-                        <input type="hidden" name="section" value="{{ slot.section.name }}">
-                        <button type="submit" class="book-btn">Book</button>
-                    </form>
-                    {% endif %}
-                </li>
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #2a5298;
+        }
+
+        h2 {
+            color: #1e3c72;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        /* Flash Messages */
+        .flashes {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+
+        .flashes li {
+            padding: 12px 16px;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .flashes li.success {
+            background-color: #f0fff4;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .flashes li.danger {
+            background-color: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .flashes li.info {
+            background-color: #ebf8ff;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+
+        /* Calendar Grid */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .calendar-day {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            min-height: 300px;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+            border-color: #cbd5e0;
+        }
+
+        .calendar-day h4 {
+            color: #1e3c72;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .calendar-day ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .calendar-day li {
+            margin: 0.75rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            transition: all 0.3s ease;
+            border: 1px solid;
+        }
+
+        .calendar-day li:hover {
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-day li.available {
+            background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+            border-color: #48bb78;
+            color: #22543d;
+        }
+
+        .calendar-day li.mine {
+            background: linear-gradient(135deg, #e6fffa 0%, #ffffff 100%);
+            border-color: #38b2ac;
+            color: #234e52;
+            font-weight: 600;
+        }
+
+        .calendar-day li.booked {
+            background: linear-gradient(135deg, #fed7d7 0%, #ffffff 100%);
+            border-color: #e53e3e;
+            color: #742a2a;
+        }
+
+        .slot-time {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .slot-location {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .book-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .book-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        }
+
+        .no-slots {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 2rem 0;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 2px dashed #cbd5e0;
+        }
+
+        /* Legend */
+        .legend {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .legend h3 {
+            color: #4a5568;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .legend-items {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e0;
+        }
+
+        .legend-available {
+            background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+            border-color: #48bb78;
+        }
+
+        .legend-mine {
+            background: linear-gradient(135deg, #e6fffa 0%, #ffffff 100%);
+            border-color: #38b2ac;
+        }
+
+        .legend-booked {
+            background: linear-gradient(135deg, #fed7d7 0%, #ffffff 100%);
+            border-color: #e53e3e;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .main-container {
+                padding: 0 1rem;
+                margin: 1rem auto;
+            }
+
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .calendar-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            h2 {
+                font-size: 1.75rem;
+            }
+
+            .legend-items {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .calendar-day {
+                padding: 1rem;
+                min-height: auto;
+            }
+
+            .calendar-day li {
+                padding: 0.75rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span>🏢</span>
+                <span>Company Portal</span>
+            </div>
+            <a href="{{ url_for('auth_bp.dashboard') }}" class="back-btn">← Back to Dashboard</a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <div class="form-container">
+            <h2>📅 Weekly Slot Availability</h2>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
                 {% endfor %}
             </ul>
-            {% else %}
-            <p>No slots</p>
             {% endif %}
+            {% endwith %}
+
+            <!-- Legend -->
+            <div class="legend">
+                <h3>📋 Booking Status Legend</h3>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-color legend-available"></div>
+                        <span>Available - Click to book</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-mine"></div>
+                        <span>Your bookings</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-booked"></div>
+                        <span>Booked by others</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-grid">
+                {% for day in days %}
+                {% set day_str = day.strftime("%Y-%m-%d") %}
+                <div class="calendar-day">
+                    <h4>{{ day.strftime("%A, %b %d") }}</h4>
+
+                    {% if slot_map[day_str] %}
+                    <ul>
+                        {% for slot in slot_map[day_str] %}
+                        <li class="{% if slot.bookings and slot.bookings[0].user_id == user_id %}mine{%
+                                   elif slot.bookings %}booked{% else %}available{% endif %}">
+
+                            <div class="slot-time">
+                                {{ slot.start_time.strftime("%I:%M %p") }} - {{ slot.end_time.strftime("%I:%M %p") }}
+                            </div>
+
+                            <div class="slot-location">
+                                📍 {{ slot.branch.name }} ({{ slot.section.name }})
+                            </div>
+
+                            {% if not slot.bookings %}
+                            <form method="POST" action="{{ url_for('calendar_view_bp.book_from_calendar') }}"
+                                style="display:inline;">
+                                <input type="hidden" name="date" value="{{ slot.date.strftime('%Y-%m-%d') }}">
+                                <input type="hidden" name="slot_range"
+                                    value="{{ get_slot_range_key(slot.start_time, slot.end_time) }}">
+                                <input type="hidden" name="branch" value="{{ slot.branch.name }}">
+                                <input type="hidden" name="section" value="{{ slot.section.name }}">
+                                <button type="submit" class="book-btn">📅 Book Now</button>
+                            </form>
+                            {% elif slot.bookings and slot.bookings[0].user_id == user_id %}
+                            <div style="font-size: 0.8rem; margin-top: 0.5rem; font-weight: 600;">
+                                ✅ Booked by you
+                            </div>
+                            {% else %}
+                            <div style="font-size: 0.8rem; margin-top: 0.5rem; font-weight: 600;">
+                                🔒 Unavailable
+                            </div>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="no-slots">
+                        <p>📭 No slots available</p>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">Check back later</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        {% endfor %}
     </div>
-</div>
-{% endblock %}
+</body>
+
+</html>
