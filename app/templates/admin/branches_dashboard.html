@@ -154,6 +154,75 @@
             border-left: 4px solid #2a5298;
         }
 
+        /* Flash Messages */
+        .flash-container {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .flash {
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .flash-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .flash-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .flash-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Auto-hide flash messages */
+        .flash {
+            animation: slideDown 0.3s ease-out, fadeOut 0.5s ease-out 4s forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .main-container {
@@ -364,9 +433,43 @@
                     font-size: 0.9rem;
                 }
 
-                .delete-btn {
-                    background: #e53e3e;
-                    color: white;
+                .status-badge {
+                    padding: 4px 12px;
+                    border-radius: 15px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.25rem;
+                }
+
+                .status-active {
+                    background: #c6f6d5;
+                    color: #22543d;
+                }
+
+                .status-inactive {
+                    background: #fed7d7;
+                    color: #742a2a;
+                }
+
+                .deactivated-info {
+                    margin-top: 4px;
+                }
+
+                .deactivated-info small {
+                    color: #718096;
+                    font-size: 0.75rem;
+                    font-style: italic;
+                }
+
+                .inactive-row {
+                    background-color: #fef5e7;
+                    opacity: 0.8;
+                }
+
+                .toggle-btn {
                     padding: 6px 12px;
                     border: none;
                     border-radius: 6px;
@@ -376,8 +479,23 @@
                     transition: all 0.2s ease;
                 }
 
-                .delete-btn:hover {
+                .deactivate-btn {
+                    background: #e53e3e;
+                    color: white;
+                }
+
+                .deactivate-btn:hover {
                     background: #c53030;
+                    transform: translateY(-1px);
+                }
+
+                .activate-btn {
+                    background: #48bb78;
+                    color: white;
+                }
+
+                .activate-btn:hover {
+                    background: #38a169;
                     transform: translateY(-1px);
                 }
 
@@ -388,6 +506,17 @@
                     font-style: italic;
                 }
             </style>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
 
             <div class="branches-header">
                 <h2 class="branches-title">🏬 Branch Management System</h2>
@@ -418,21 +547,44 @@
                             <th>🏬 Name</th>
                             <th>📍 Address</th>
                             <th>🏙️ City</th>
+                            <th>📊 Status</th>
                             <th>⚙️ Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for branch in branches %}
-                        <tr>
+                        <tr class="{{ 'inactive-row' if not branch.is_active else '' }}">
                             <td class="branch-name">{{ branch.name }}</td>
                             <td class="branch-address">{{ branch.address or 'Not specified' }}</td>
                             <td class="branch-city">{{ branch.city or 'Not specified' }}</td>
                             <td>
-                                <form action="{{ url_for('manage_branches_bp.delete_branch', branch_id=branch.id) }}"
+                                <span class="status-badge {{ branch.get_status_badge_class() }}">
+                                    {% if branch.is_active %}
+                                    ✅ Active
+                                    {% else %}
+                                    ❌ Inactive
+                                    {% endif %}
+                                </span>
+                                {% if not branch.is_active and branch.deactivated_at %}
+                                <div class="deactivated-info">
+                                    <small>Deactivated: {{ branch.deactivated_at.strftime('%d %b %Y') }}</small>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form action="{{ url_for('manage_branches_bp.toggle_branch', branch_id=branch.id) }}"
                                     method="POST" style="display:inline;">
-                                    <button type="submit" class="delete-btn"
-                                        onclick="return confirm('⚠️ Are you sure you want to delete this branch?');">🗑️
-                                        Delete</button>
+                                    {% if branch.is_active %}
+                                    <button type="submit" class="toggle-btn deactivate-btn"
+                                        onclick="return confirm('⚠️ Are you sure you want to deactivate this branch?');">
+                                        🔴 Deactivate
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" class="toggle-btn activate-btn"
+                                        onclick="return confirm('✅ Are you sure you want to activate this branch?');">
+                                        🟢 Activate
+                                    </button>
+                                    {% endif %}
                                 </form>
                             </td>
                         </tr>

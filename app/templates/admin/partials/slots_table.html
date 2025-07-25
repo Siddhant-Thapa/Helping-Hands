@@ -212,6 +212,20 @@
         font-style: italic;
     }
 
+    .inactive-indicator {
+        font-size: 0.7rem;
+        margin-left: 4px;
+        opacity: 0.7;
+        cursor: help;
+    }
+
+    .location-cell .branch-name,
+    .location-cell .section-name {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
     @media (max-width: 768px) {
         .slots-header {
             flex-direction: column;
@@ -273,8 +287,18 @@
                         {{ slot.end_time.strftime('%I:%M %p') if slot.end_time.strftime else slot.end_time }}
                     </td>
                     <td class="location-cell">
-                        <span class="branch-name">{{ slot.branch.name }}</span>
-                        <span class="section-name">{{ slot.section.name }}</span>
+                        <span class="branch-name">
+                            {{ slot.branch.name }}
+                            {% if not slot.branch.is_active %}
+                            <span class="inactive-indicator" title="This branch is inactive">❌</span>
+                            {% endif %}
+                        </span>
+                        <span class="section-name">
+                            {{ slot.section.name }}
+                            {% if not slot.section.is_active %}
+                            <span class="inactive-indicator" title="This section is inactive">❌</span>
+                            {% endif %}
+                        </span>
                     </td>
                     <td>
                         {% if slot.bookings %}
@@ -337,8 +361,18 @@
                         {{ slot.end_time.strftime('%I:%M %p') if slot.end_time.strftime else slot.end_time }}
                     </td>
                     <td class="location-cell">
-                        <span class="branch-name">{{ slot.branch.name }}</span>
-                        <span class="section-name">{{ slot.section.name }}</span>
+                        <span class="branch-name">
+                            {{ slot.branch.name }}
+                            {% if not slot.branch.is_active %}
+                            <span class="inactive-indicator" title="This branch is inactive">❌</span>
+                            {% endif %}
+                        </span>
+                        <span class="section-name">
+                            {{ slot.section.name }}
+                            {% if not slot.section.is_active %}
+                            <span class="inactive-indicator" title="This section is inactive">❌</span>
+                            {% endif %}
+                        </span>
                     </td>
                     <td>
                         {% if slot.bookings %}
@@ -401,8 +435,18 @@
                         {{ slot.end_time.strftime('%I:%M %p') if slot.end_time.strftime else slot.end_time }}
                     </td>
                     <td class="location-cell">
-                        <span class="branch-name">{{ slot.branch.name }}</span>
-                        <span class="section-name">{{ slot.section.name }}</span>
+                        <span class="branch-name">
+                            {{ slot.branch.name }}
+                            {% if not slot.branch.is_active %}
+                            <span class="inactive-indicator" title="This branch is inactive">❌</span>
+                            {% endif %}
+                        </span>
+                        <span class="section-name">
+                            {{ slot.section.name }}
+                            {% if not slot.section.is_active %}
+                            <span class="inactive-indicator" title="This section is inactive">❌</span>
+                            {% endif %}
+                        </span>
                     </td>
                     <td>
                         {% if slot.bookings %}

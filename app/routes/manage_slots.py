@@ -45,8 +45,9 @@ def list_slots():
 @login_required
 @admin_required
 def create_slot():
-    branches = Branch.query.all()
-    sections = Section.query.all()
+    # Show only active branches and sections for new slot creation
+    branches = Branch.query.filter_by(is_active=True).all()
+    sections = Section.query.filter_by(is_active=True).all()
     if request.method == 'POST':
         date = request.form['date']
         slot_range = request.form['slot_range']
@@ -83,8 +84,9 @@ def create_slot():
 @admin_required
 def edit_slot(slot_id):
     slot = Slot.query.get_or_404(slot_id)
-    branches = Branch.query.all()
-    sections = Section.query.all()
+    # Show only active branches and sections for editing
+    branches = Branch.query.filter_by(is_active=True).all()
+    sections = Section.query.filter_by(is_active=True).all()
     if request.method == 'POST':
         slot.date = request.form['date']
         slot_range = request.form['slot_range']

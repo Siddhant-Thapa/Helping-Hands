@@ -43,8 +43,18 @@ class Branch(db.Model):
     name = db.Column(db.String(100), nullable=False)
     address = db.Column(db.Text)
     city = db.Column(db.String(50), default='Bangalore')
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    deactivated_at = db.Column(db.DateTime, nullable=True)
 
     slots = db.relationship('Slot', backref='branch', lazy=True)
+
+    def get_status(self):
+        """Get the status of the branch"""
+        return "Active" if self.is_active else "Inactive"
+
+    def get_status_badge_class(self):
+        """Get CSS class for status badge"""
+        return "status-active" if self.is_active else "status-inactive"
 
 
 class Section(db.Model):
@@ -52,8 +62,18 @@ class Section(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     type = db.Column(db.String(50))  # E.g., 'Veg', 'Non-Veg', etc.
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    deactivated_at = db.Column(db.DateTime, nullable=True)
 
     slots = db.relationship('Slot', backref='section', lazy=True)
+
+    def get_status(self):
+        """Get the status of the section"""
+        return "Active" if self.is_active else "Inactive"
+
+    def get_status_badge_class(self):
+        """Get CSS class for status badge"""
+        return "status-active" if self.is_active else "status-inactive"
 
 
 class Slot(db.Model):

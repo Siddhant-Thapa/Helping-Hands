@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
 from app.models import db, Section
 from app.utils.helpers import admin_required
+from datetime import datetime
 
 manage_sections_bp = Blueprint(
     'manage_sections_bp', __name__, url_prefix='/admin/sections')
@@ -24,16 +25,22 @@ def sections_dashboard():
     return render_template('admin/sections_dashboard.html', sections=sections)
 
 
-@manage_sections_bp.route('/delete/<int:section_id>', methods=['POST'])
+@manage_sections_bp.route('/toggle/<int:section_id>', methods=['POST'])
 @login_required
 @admin_required
-def delete_section(section_id):
+def toggle_section(section_id):
     section = Section.query.get_or_404(section_id)
-    # Check if any slots reference this section
-    if section.slots:
-        flash("Cannot delete: This section is still in use by one or more slots.", "danger")
-        return redirect(url_for('manage_sections_bp.sections_dashboard'))
-    db.session.delete(section)
+
+    if section.is_active:
+        # Deactivating section
+        section.is_active = False
+        section.deactivated_at = datetime.utcnow()
+        flash(f"Section '{section.name}' has been deactivated.", "info")
+    else:
+        # Activating section
+        section.is_active = True
+        section.deactivated_at = None
+        flash(f"Section '{section.name}' has been activated.", "success")
+
     db.session.commit()
-    flash("Section deleted!", "info")
     return redirect(url_for('manage_sections_bp.sections_dashboard'))

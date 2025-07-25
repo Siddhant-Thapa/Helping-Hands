@@ -18,9 +18,9 @@ SLOT_TIME_RANGES = {
 def book_slot():
     user_id = current_user.id
 
-    # Always fetch live branches/sections from the database
-    branches = Branch.query.all()
-    sections = Section.query.all()
+    # Always fetch live branches/sections from the database - only active ones for booking
+    branches = Branch.query.filter_by(is_active=True).all()
+    sections = Section.query.filter_by(is_active=True).all()
 
     # Fetch all sale days (future or ongoing)
     sale_days = SaleDay.query.filter(
