@@ -159,6 +159,7 @@ Helping_Hands/
 ```bash
 git clone https://github.com/Siddhant-Thapa/Helping-Hands
 cd Helping-Hands
+```
 
 ### Step 2: Create Virtual Environment
 ```bash
@@ -320,6 +321,7 @@ We welcome contributions to improve the Helping Hands system!
 
 
 ### Areas for Contribution
+
 - 🐛 Bug fixes and improvements
 - ✨ New features and enhancements
 - 📚 Documentation improvements
@@ -327,7 +329,8 @@ We welcome contributions to improve the Helping Hands system!
 - ⚡ Performance optimizations
 - 🧪 Test coverage expansion
 
-🐞 Known Issues
+### 🐞 Known Issues(bugs)
+
 Star Rating Always Shows 1 Star in Admin Panel
 When submitting feedback, the selected star rating (1–5) is not reflected correctly. All feedback entries currently display as 1 star, regardless of the user selection.
 
