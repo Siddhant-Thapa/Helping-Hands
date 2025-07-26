@@ -1,10 +1,19 @@
-# Ignore virtual env
+# Ignore virtual environments
 .venv/
+venv/
+env/
+ENV/
 
-# Ignore system files
+# Ignore Python cache and bytecode
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+
+# Ignore SQLite database (if used locally)
 *.db
 
-# Ignore uploads (optional)
+# Ignore user-generated uploads (optional)
 app/static/uploads/
+
+# Ignore environment variables
+.env

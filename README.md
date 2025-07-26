@@ -158,7 +158,11 @@ Helping_Hands/
 ### Step 1: Clone the Repository
 ```bash
 git clone https://github.com/Siddhant-Thapa/Helping-Hands
+<<<<<<< HEAD
 cd Helping-Hands-Software
+=======
+cd Helping-Hands
+>>>>>>> dcc0e3a (updated readme)
 ```
 
 ### Step 2: Create Virtual Environment
@@ -188,17 +192,24 @@ pip install flask flask-sqlalchemy flask-migrate flask-login psycopg2-binary wer
 Create a `.env` file in the root directory:
 ```env
 SECRET_KEY=your_secret_key_here
+<<<<<<< HEAD
 DATABASE_URL=postgresql://username:password@localhost/helping_hand
+=======
+DATABASE_URL=postgresql://username:enter_your_password_here@localhost/helping_hand
+>>>>>>> dcc0e3a (updated readme)
 FLASK_ENV=development
 FLASK_DEBUG=True
 ```
 
+<<<<<<< HEAD
 ### Database Configuration
 Update the database URI in `app/__init__.py`:
 ```python
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:your_password@localhost/helping_hand"
 ```
 
+=======
+>>>>>>> dcc0e3a (updated readme)
 ## 🗄️ Database Setup
 
 ### Step 1: Create PostgreSQL Database
@@ -282,6 +293,7 @@ The application will be available at `http://localhost:5000`
 
 ## 📸 Screenshots
 
+<<<<<<< HEAD
 ### User Interface
 - **Dashboard**: Clean, intuitive user dashboard with booking overview
 - **Booking System**: Easy-to-use slot selection with real-time availability
@@ -291,6 +303,39 @@ The application will be available at `http://localhost:5000`
 - **Admin Dashboard**: Comprehensive system overview with statistics
 - **Management Panels**: Dedicated interfaces for all system components
 - **Responsive Design**: Mobile-friendly admin interface
+=======
+### 🛠️ Admin Interface
+
+#### 📊 Admin Dashboard
+![Admin Dashboard](static/screenshots/admin_dashboard.png)
+
+#### 🏢 Branch Management
+![Branches Dashboard](static/screenshots/branches_dashboard.png)
+
+#### 🧩 Slot Management
+![Slot Management](static/screenshots/slot_management.png)
+
+#### 👥 User Approvals
+![User Approval](static/screenshots/user_approval.png)
+
+--------------------------------------------------------------
+
+### 🧑‍💻 User Interface
+
+#### 🏠 User Dashboard
+![User Dashboard](static/screenshots/user_dashboard.png)
+
+#### 📅 Weekly Slot View
+![Weekly Slot View](static/screenshots/weekly_slot_view.png)
+
+#### 📆 Book a Slot
+![Book a Slot](static/screenshots/book_a_slot.png)
+
+#### 📚 My Bookings
+![My Bookings](static/screenshots/my_booking.png)
+
+
+>>>>>>> dcc0e3a (updated readme)
 
 
 ## 🤝 Contributing
@@ -313,6 +358,19 @@ We welcome contributions to improve the Helping Hands system!
 - ⚡ Performance optimizations
 - 🧪 Test coverage expansion
 
+<<<<<<< HEAD
+=======
+🐞 Known Issues
+Star Rating Always Shows 1 Star in Admin Panel
+When submitting feedback, the selected star rating (1–5) is not reflected correctly. All feedback entries currently display as 1 star, regardless of the user selection.
+
+-Status: Identified
+
+-Root Cause: Likely due to incorrect form data binding or missing JS integration for star input (sweetalert templete used there likely cause of the issue)
+
+-Fix Planned: Yes, to be addressed in upcoming patch
+
+>>>>>>> dcc0e3a (updated readme)
 
 ## 📞 Support
 
@@ -324,4 +382,8 @@ For support, questions, or suggestions:
 
 **Made with ❤️ by the Helping Hands Team**
 
+<<<<<<< HEAD
 *Empowering organizations with efficient slot booking management*
+=======
+*Empowering organizations with efficient slot booking management*
+>>>>>>> dcc0e3a (updated readme)

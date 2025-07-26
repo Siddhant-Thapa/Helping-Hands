@@ -4,6 +4,9 @@ import os
 from app.models import db, User  # <- Make sure path is correct!
 from flask_login import LoginManager
 from flask import render_template, request, redirect, flash, url_for
+from dotenv import load_dotenv
+load_dotenv()
+
 
 migrate = Migrate()
 
@@ -12,10 +15,12 @@ migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
-    app.secret_key = "your_secret_key_here"
 
-    # PostgreSQL config
-    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:Siddhant1@localhost/helping_hand"
+    # Load from .env
+    app.secret_key = os.getenv("SECRET_KEY")
+
+    # ✅ Only use .env DATABASE_URL
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # File uploads
