@@ -25,7 +25,38 @@ Helping Hands is a modern slot booking system that enables organizations with mu
 - **Development Server**: Flask Development Server
 
 
-## ✨ Features
+## 📸 Screenshots
+
+### 🛠️ Admin Interface
+
+#### 📊 Admin Dashboard
+![Admin Dashboard](app/static/screenshots/admin_dashboard.png)
+
+#### 🏢 Branch Management
+![Branches Dashboard](app/static/screenshots/branches_dashboard.png)
+
+#### 🧩 Slot Management
+![Slot Management](app/static/screenshots/slot_management.png)
+
+#### 👥 User Approvals
+![User Approval](app/static/screenshots/user_approval.png)
+
+--------------------------------------------------------------
+
+### 🧑‍💻 User Interface
+
+#### 🏠 User Dashboard
+![User Dashboard](app/static/screenshots/user_dashboard.png)
+
+#### 📅 Weekly Slot View
+![Weekly Slot View](app/static/screenshots/weekly_slot_view.png)
+
+#### 📆 Book a Slot
+![Book a Slot](app/static/screenshots/book_a_slot.png)
+
+#### 📚 My Bookings
+![My Bookings](app/static/screenshots/my_booking.png)
+<!-- ## ✨ Features
 
 ### 👤 User Features
 - **User Registration & Authentication**
@@ -92,7 +123,7 @@ Helping Hands is a modern slot booking system that enables organizations with mu
 - **Sale Days Management**
   - Configure promotional periods
   - Set special booking rules
-  - Manage seasonal campaigns
+  - Manage seasonal campaigns -->
 
 
 
@@ -273,39 +304,6 @@ The application will be available at `http://localhost:5000`
 - `GET /admin/slots` - Slot management
 - `GET /admin/feedback` - Feedback management
 - `GET /admin/sale-days` - Sale days management
-
-## 📸 Screenshots
-
-### 🛠️ Admin Interface
-
-#### 📊 Admin Dashboard
-![Admin Dashboard](app/static/screenshots/admin_dashboard.png)
-
-#### 🏢 Branch Management
-![Branches Dashboard](app/static/screenshots/branches_dashboard.png)
-
-#### 🧩 Slot Management
-![Slot Management](app/static/screenshots/slot_management.png)
-
-#### 👥 User Approvals
-![User Approval](app/static/screenshots/user_approval.png)
-
---------------------------------------------------------------
-
-### 🧑‍💻 User Interface
-
-#### 🏠 User Dashboard
-![User Dashboard](app/static/screenshots/user_dashboard.png)
-
-#### 📅 Weekly Slot View
-![Weekly Slot View](app/static/screenshots/weekly_slot_view.png)
-
-#### 📆 Book a Slot
-![Book a Slot](app/static/screenshots/book_a_slot.png)
-
-#### 📚 My Bookings
-![My Bookings](app/static/screenshots/my_booking.png)
-
 
 
 ## 🤝 Contributing
